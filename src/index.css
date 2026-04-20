@@ -48,6 +48,7 @@
     --gradient-rose: linear-gradient(135deg, hsl(340, 72%, 65%), hsl(320, 60%, 72%));
     --gradient-lilac: linear-gradient(135deg, hsl(280, 55%, 75%), hsl(300, 45%, 80%));
     --gradient-warm: linear-gradient(135deg, hsl(340, 60%, 96%), hsl(340, 50%, 92%), hsl(280, 50%, 94%));
+    --gradient-party: linear-gradient(135deg, hsl(45, 90%, 60%), hsl(35, 90%, 65%), hsl(55, 85%, 55%));
     --shadow-rose: 0 8px 32px -8px hsl(340 72% 65% / 0.25);
     --shadow-soft: 0 4px 24px -4px hsl(340 20% 18% / 0.06);
     --shadow-card: 0 1px 3px hsl(340 20% 18% / 0.04), 0 4px 16px hsl(340 20% 18% / 0.06);
@@ -81,6 +82,10 @@
 
   .gradient-warm {
     background: var(--gradient-warm);
+  }
+
+  .gradient-party {
+    background: var(--gradient-party);
   }
 
   .shadow-rose {
