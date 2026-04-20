@@ -13,16 +13,16 @@ const Dialog = ({ open, onOpenChange, ...props }: React.ComponentProps<typeof Di
     if (!open) return;
 
     poppedRef.current = false;
-    window.history.pushState({ __lovableDialog: true }, '');
+    window.history.pushState({ __lovableDialog: true }, "");
 
     const handlePop = () => {
       poppedRef.current = true;
       onOpenChange?.(false);
     };
-    window.addEventListener('popstate', handlePop);
+    window.addEventListener("popstate", handlePop);
 
     return () => {
-      window.removeEventListener('popstate', handlePop);
+      window.removeEventListener("popstate", handlePop);
       // Only pop our pushed state if dialog was closed via UI (not by back button).
       // Check that our state is still on top to avoid navigating away from real pages.
       if (!poppedRef.current && window.history.state?.__lovableDialog) {
@@ -46,10 +46,7 @@ const DialogOverlay = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Overlay
     ref={ref}
-    className={cn(
-      "fixed inset-0 z-50 bg-black/20 backdrop-blur-[3px] dialog-overlay-enter",
-      className,
-    )}
+    className={cn("fixed inset-0 z-50 bg-black/20 backdrop-blur-[3px] dialog-overlay-enter", className)}
     {...props}
   />
 ));
