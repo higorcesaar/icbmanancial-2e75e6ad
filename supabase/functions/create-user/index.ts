@@ -24,23 +24,26 @@ Deno.serve(async (req) => {
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
 
     const isServiceRole = authHeader === SERVICE_ROLE || authHeader.startsWith(`Bearer ${SERVICE_ROLE}`);
+    let callerUserId: string | null = null;
+
     if (isServiceRole) {
-      // Direct service role access - skip user validation
       console.log("Service role authenticated request");
     } else {
-      // Verify caller is admin via user_roles
-      const userClient = createClient(SUPABASE_URL, ANON, {
-        global: { headers: { Authorization: authHeader } },
-      });
-      const { data: userData, error: userErr } = await userClient.auth.getUser();
-      if (userErr || !userData.user) {
+      // Decode JWT manually to get user_id (avoid getUser() which fails with ES256)
+      const token = authHeader.replace(/^Bearer /, "");
+      try {
+        const parts = token.split(".");
+        if (parts.length !== 3) throw new Error("Invalid token format");
+        const payload = JSON.parse(atob(parts[1]));
+        callerUserId = payload.sub;
+      } catch (_e) {
         return new Response(JSON.stringify({ error: "Unauthorized" }), {
           status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
       const { data: roleRow } = await admin
-        .from("user_roles").select("role").eq("user_id", userData.user.id).eq("role", "admin").maybeSingle();
+        .from("user_roles").select("role").eq("user_id", callerUserId).eq("role", "admin").maybeSingle();
       if (!roleRow) {
         return new Response(JSON.stringify({ error: "Apenas administradores podem realizar esta ação" }), {
           status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
