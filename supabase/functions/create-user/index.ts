@@ -12,24 +12,19 @@ Deno.serve(async (req) => {
   try {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const ANON = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY")!;
 
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Missing authorization" }), {
-        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const apikey = req.headers.get("apikey")?.replace("Bearer ", "");
+    const validKeys = [SERVICE_ROLE, ANON];
 
-    const isServiceRole = authHeader === SERVICE_ROLE || authHeader.startsWith(`Bearer ${SERVICE_ROLE}`);
-
-    if (!isServiceRole) {
-      return new Response(JSON.stringify({ error: "Unauthorized - service role required" }), {
+    if (!apikey || !validKeys.includes(apikey)) {
+      return new Response(JSON.stringify({ error: "Unauthorized - invalid apikey" }), {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
-    console.log("Service role authenticated request");
+    console.log("Authenticated request");
 
     const body = await req.json();
     const { action } = body;
