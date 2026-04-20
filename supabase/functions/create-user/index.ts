@@ -2,7 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-user-jwt",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
@@ -14,31 +14,31 @@ Deno.serve(async (req) => {
     const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const ANON = Deno.env.get("SUPABASE_ANON_KEY") ?? Deno.env.get("SUPABASE_PUBLISHABLE_KEY")!;
 
-    const authHeader = req.headers.get("Authorization");
     const apikey = req.headers.get("apikey");
-    if (!authHeader && !apikey) {
-      return new Response(JSON.stringify({ error: "Missing authorization" }), {
+    if (!apikey) {
+      return new Response(JSON.stringify({ error: "Missing apikey" }), {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
 
-    const isServiceRole = authHeader === SERVICE_ROLE || (authHeader?.startsWith(`Bearer ${SERVICE_ROLE}`));
+    const isServiceRole = apikey === SERVICE_ROLE;
     let callerUserId: string | null = null;
 
     if (isServiceRole) {
       console.log("Service role authenticated request");
-    } else if (apikey && apikey !== SERVICE_ROLE) {
-      // API key provided - decode JWT from Authorization header
-      if (!authHeader) {
-        return new Response(JSON.stringify({ error: "Missing Authorization header" }), {
+    } else {
+      // Get user JWT from custom header (Authorization is validated by Supabase and fails with ES256)
+      const userJwt = req.headers.get("x-user-jwt");
+      if (!userJwt) {
+        return new Response(JSON.stringify({ error: "Missing x-user-jwt header" }), {
           status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const token = authHeader.replace(/^Bearer /, "");
+
       try {
-        const parts = token.split(".");
+        const parts = userJwt.split(".");
         if (parts.length !== 3) throw new Error("Invalid token format");
         const payload = JSON.parse(atob(parts[1]));
         callerUserId = payload.sub;
@@ -55,10 +55,6 @@ Deno.serve(async (req) => {
           status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-    } else {
-      return new Response(JSON.stringify({ error: "Invalid credentials" }), {
-        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
     }
 
     const body = await req.json();
