@@ -100,33 +100,63 @@ export type Database = {
       }
       profiles: {
         Row: {
-          avatar_url: string | null
           created_at: string
           display_name: string | null
           email: string | null
           id: string
+          is_active: boolean
           updated_at: string
-          user_id: string
         }
         Insert: {
-          avatar_url?: string | null
           created_at?: string
           display_name?: string | null
           email?: string | null
-          id?: string
+          id: string
+          is_active?: boolean
           updated_at?: string
-          user_id: string
         }
         Update: {
-          avatar_url?: string | null
           created_at?: string
           display_name?: string | null
           email?: string | null
           id?: string
+          is_active?: boolean
           updated_at?: string
-          user_id?: string
         }
         Relationships: []
+      }
+      schedule_accessories: {
+        Row: {
+          accessory_id: string
+          id: string
+          schedule_id: string
+        }
+        Insert: {
+          accessory_id: string
+          id?: string
+          schedule_id: string
+        }
+        Update: {
+          accessory_id?: string
+          id?: string
+          schedule_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "schedule_accessories_accessory_id_fkey"
+            columns: ["accessory_id"]
+            isOneToOne: false
+            referencedRelation: "accessories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "schedule_accessories_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "schedules"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       schedule_members: {
         Row: {
