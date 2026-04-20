@@ -12,7 +12,6 @@ Deno.serve(async (req) => {
   try {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const ANON = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY")!;
 
     const authHeader = req.headers.get("Authorization")?.replace("Bearer ", "");
     const apikey = req.headers.get("apikey")?.replace("Bearer ", "");
@@ -25,6 +24,7 @@ Deno.serve(async (req) => {
       });
     }
 
+    const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
     console.log("Admin authenticated request");
 
     const body = await req.json();
