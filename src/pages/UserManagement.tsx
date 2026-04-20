@@ -86,9 +86,15 @@ export default function UserManagement() {
   });
 
   const toggleActive = async (profile: any) => {
-    await supabase.from('profiles').update({ is_active: !profile.is_active }).eq('id', profile.id);
-    queryClient.invalidateQueries({ queryKey: ['profiles'] });
-    toast.success(profile.is_active ? 'Conta desativada' : 'Conta ativada');
+    const newStatus = !profile.is_active;
+    const { error } = await supabase.from('profiles').update({ is_active: newStatus }).eq('id', profile.id);
+    if (error) {
+      console.error('Erro ao togglear status:', error);
+      toast.error('Erro ao atualizar status');
+      return;
+    }
+    queryClient.invalidateQueries({ queryKey: ['profiles-with-roles'] });
+    toast.success(newStatus ? 'Conta ativada' : 'Conta desativada');
   };
 
   const changeRole = async (userId: string, newRole: string) => {
