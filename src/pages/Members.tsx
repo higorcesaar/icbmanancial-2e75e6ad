@@ -101,7 +101,7 @@ export default function Members() {
       </div>
 
       <MemberDialog open={dialogOpen} onOpenChange={setDialogOpen} member={editing} onSaved={() => {
-        queryClient.invalidateQueries({ queryKey: ['members'] };
+        queryClient.invalidateQueries({ queryKey: ['members'] });
         setDialogOpen(false);
       }} />
     </div>

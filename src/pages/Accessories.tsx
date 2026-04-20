@@ -107,15 +107,15 @@ function AccessoryDialog({ open, onOpenChange, accessory, onSaved }: any) {
       if (imageFile) {
         const ext = imageFile.name.split('.').pop();
         const path = `accessories/${crypto.randomUUID()}.${ext}`;
-        const { error } = await supabase.storage.from('outfits').upload(path, imageFile);
+        const { error } = await supabase.storage.from('accessories').upload(path, imageFile);
         if (!error) {
-          const { data } = supabase.storage.from('outfits').getPublicUrl(path);
+          const { data } = supabase.storage.from('accessories').getPublicUrl(path);
           imageUrl = data.publicUrl;
         }
       }
 
       if (accessory) {
-        await supabase.from('accessories').update({ name, description: description || null }).eq('id', accessory.id);
+        await supabase.from('accessories').update({ name, description: description || null, image_url: imageUrl }).eq('id', accessory.id);
       } else {
         await supabase.from('accessories').insert({ name, description: description || null });
       }

@@ -53,7 +53,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (session?.user) {
           console.log('Sessão atualizada para:', session.user.email);
           // Pequeno delay para garantir que os triggers do banco tenham terminado
-          fetchRole(session.user.id);
+          setTimeout(() => fetchRole(session.user!.id), 100);
         } else {
           setRole(null);
         }
