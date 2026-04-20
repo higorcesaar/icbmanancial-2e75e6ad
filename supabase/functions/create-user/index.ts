@@ -34,6 +34,24 @@ Deno.serve(async (req) => {
       });
     }
 
+    if (action === "toggle_active") {
+      // Find profile by user_id and toggle is_active
+      const { data: prof, error: pErr } = await supabase
+        .from("profiles").select("id, is_active").eq("user_id", body.user_id).maybeSingle();
+      if (pErr) throw pErr;
+      if (!prof) throw new Error("Profile not found");
+      
+      const newStatus = !prof.is_active;
+      const { error: upErr } = await supabase.from("profiles")
+        .update({ is_active: newStatus })
+        .eq("id", prof.id);
+      if (upErr) throw upErr;
+      
+      return new Response(JSON.stringify({ success: true, is_active: newStatus }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     if (action === "change_password") {
       const { data: prof, error: pErr } = await supabase
         .from("profiles").select("user_id").eq("id", body.user_id).maybeSingle();

@@ -86,15 +86,19 @@ export default function UserManagement() {
   });
 
   const toggleActive = async (profile: any) => {
-    const newStatus = !profile.is_active;
-    const { error } = await supabase.from('profiles').update({ is_active: newStatus }).eq('id', profile.id);
-    if (error) {
-      console.error('Erro ao togglear status:', error);
-      toast.error('Erro ao atualizar status');
-      return;
+    try {
+      await ensureSession();
+      const res = await supabase.functions.invoke('create-user', {
+        body: { action: 'toggle_active', user_id: profile.user_id },
+      });
+      if (res.error) throw new Error(res.error.message);
+      if (res.data?.error) throw new Error(res.data.error);
+      queryClient.invalidateQueries({ queryKey: ['profiles-with-roles'] });
+      toast.success(res.data?.is_active ? 'Conta ativada' : 'Conta desativada');
+    } catch (err: any) {
+      console.error('Erro ao togglear status:', err);
+      toast.error(err.message || 'Erro ao atualizar status');
     }
-    queryClient.invalidateQueries({ queryKey: ['profiles-with-roles'] });
-    toast.success(newStatus ? 'Conta ativada' : 'Conta desativada');
   };
 
   const changeRole = async (userId: string, newRole: string) => {
