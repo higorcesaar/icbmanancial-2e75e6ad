@@ -55,7 +55,7 @@ export default function UserManagement() {
       // Fetch profiles first
       const { data: pData, error: pError } = await supabase
         .from('profiles')
-        .select('*')
+        .select('id, user_id, display_name, email, is_active, avatar_url')
         .order('display_name');
       
       if (pError) {
@@ -77,7 +77,7 @@ export default function UserManagement() {
       
       const merged = (pData || []).map(p => ({
         ...p,
-        role: rolesMap.get(p.id) || 'ministra'
+        role: rolesMap.get(p.user_id) || 'ministra'
       }));
 
       console.log('Usuários carregados com sucesso:', merged.length);
@@ -113,7 +113,7 @@ export default function UserManagement() {
   };
 
   const deleteUser = async (profile: any) => {
-    if (profile.id === currentUser?.id) {
+    if (profile.user_id === currentUser?.id) {
       toast.error('Você não pode excluir sua própria conta');
       return;
     }
@@ -121,7 +121,7 @@ export default function UserManagement() {
     try {
       await ensureSession();
       const res = await supabase.functions.invoke('create-user', {
-        body: { action: 'delete', user_id: profile.id },
+        body: { action: 'delete', user_id: profile.user_id },
       });
       if (res.error) throw new Error(res.error.message);
       if (res.data?.error) throw new Error(res.data.error);
@@ -141,7 +141,7 @@ export default function UserManagement() {
     try {
       await ensureSession();
       const res = await supabase.functions.invoke('create-user', {
-        body: { action: 'change_password', user_id: passwordDialog.id, new_password: newPassword },
+        body: { action: 'change_password', user_id: passwordDialog.user_id, new_password: newPassword },
       });
       if (res.error) throw new Error(res.error.message);
       if (res.data?.error) throw new Error(res.data.error);
@@ -219,7 +219,7 @@ export default function UserManagement() {
         <div className="space-y-3">
         {profiles.map((p: any, i: number) => {
           const role = p.role;
-          const isSelf = p.id === currentUser?.id;
+          const isSelf = p.user_id === currentUser?.id;
           return (
             <motion.div key={p.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}>
               <Card className="glass-card border-0 hover:shadow-rose transition-shadow duration-300">
@@ -237,7 +237,7 @@ export default function UserManagement() {
                     </Badge>
                   </div>
                   <div className="flex items-center gap-2 mt-3 flex-wrap">
-                    <Select value={role} onValueChange={v => changeRole(p.id, v)}>
+                    <Select value={role} onValueChange={v => changeRole(p.user_id, v)}>
                       <SelectTrigger className="flex-1 min-w-[110px] rounded-xl bg-muted/30 border-border/40 text-xs h-8">
                         <SelectValue />
                       </SelectTrigger>
