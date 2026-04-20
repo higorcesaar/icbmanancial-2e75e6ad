@@ -1,5 +1,4 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { verifyJWT } from "../_shared/jwt/default.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -7,19 +6,38 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const supabase = createClient(
-  Deno.env.get("SUPABASE_URL") ?? "",
-  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-);
-
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const user = await verifyJWT(req);
-    if (!user) {
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+    const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const ANON = Deno.env.get("SUPABASE_ANON_KEY") ?? Deno.env.get("SUPABASE_PUBLISHABLE_KEY")!;
+
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Missing authorization" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Verify caller is admin
+    const userClient = createClient(SUPABASE_URL, ANON, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: userData, error: userErr } = await userClient.auth.getUser();
+    if (userErr || !userData.user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
+    const { data: roleRow } = await admin
+      .from("user_roles").select("role").eq("user_id", userData.user.id).eq("role", "admin").maybeSingle();
+    if (!roleRow) {
+      return new Response(JSON.stringify({ error: "Apenas administradores podem realizar esta ação" }), {
+        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -27,50 +45,35 @@ Deno.serve(async (req) => {
     const { action } = body;
 
     if (action === "delete") {
-      const { error } = await supabase.auth.admin.deleteUser(body.user_id);
+      const { error } = await admin.auth.admin.deleteUser(body.user_id);
       if (error) throw error;
       return new Response(JSON.stringify({ success: true }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    if (action === "toggle_active") {
-      // Find profile by user_id and toggle is_active
-      const { data: prof, error: pErr } = await supabase
-        .from("profiles").select("id, is_active").eq("user_id", body.user_id).maybeSingle();
-      if (pErr) throw pErr;
-      if (!prof) throw new Error("Profile not found");
-      
-      const newStatus = !prof.is_active;
-      const { error: upErr } = await supabase.from("profiles")
-        .update({ is_active: newStatus })
-        .eq("id", prof.id);
-      if (upErr) throw upErr;
-      
-      return new Response(JSON.stringify({ success: true, is_active: newStatus }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     if (action === "change_password") {
-      // body.user_id is now the auth user_id (not profile.id)
-      const targetId = body.user_id;
-      const { error } = await supabase.auth.admin.updateUserById(targetId, { password: body.new_password });
+      // body.user_id here is the profiles.id; fetch the actual auth user_id
+      const { data: prof, error: pErr } = await admin
+        .from("profiles").select("user_id").eq("id", body.user_id).maybeSingle();
+      if (pErr) throw pErr;
+      const targetId = prof?.user_id ?? body.user_id;
+      const { error } = await admin.auth.admin.updateUserById(targetId, { password: body.new_password });
       if (error) throw error;
       return new Response(JSON.stringify({ success: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
+    // default: create
     const { email, password, display_name, role } = body;
-    const { data: created, error: cErr } = await supabase.auth.admin.createUser({
+    const { data: created, error: cErr } = await admin.auth.admin.createUser({
       email, password, email_confirm: true, user_metadata: { display_name },
     });
     if (cErr) throw cErr;
 
     if (role && created.user) {
-      await supabase.from("user_roles").upsert({ user_id: created.user.id, role });
-      await supabase.from("profiles").upsert({ id: created.user.id, display_name, email });
+      await admin.from("user_roles").upsert({ user_id: created.user.id, role });
     }
 
     return new Response(JSON.stringify({ success: true, user: created.user }), {
