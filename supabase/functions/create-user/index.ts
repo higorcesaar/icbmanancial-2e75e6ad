@@ -15,7 +15,8 @@ Deno.serve(async (req) => {
     const ANON = Deno.env.get("SUPABASE_ANON_KEY") ?? Deno.env.get("SUPABASE_PUBLISHABLE_KEY")!;
 
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
+    const apikey = req.headers.get("apikey");
+    if (!authHeader && !apikey) {
       return new Response(JSON.stringify({ error: "Missing authorization" }), {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -23,13 +24,18 @@ Deno.serve(async (req) => {
 
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
 
-    const isServiceRole = authHeader === SERVICE_ROLE || authHeader.startsWith(`Bearer ${SERVICE_ROLE}`);
+    const isServiceRole = authHeader === SERVICE_ROLE || (authHeader?.startsWith(`Bearer ${SERVICE_ROLE}`));
     let callerUserId: string | null = null;
 
     if (isServiceRole) {
       console.log("Service role authenticated request");
-    } else {
-      // Decode JWT manually to get user_id (avoid getUser() which fails with ES256)
+    } else if (apikey && apikey !== SERVICE_ROLE) {
+      // API key provided - decode JWT from Authorization header
+      if (!authHeader) {
+        return new Response(JSON.stringify({ error: "Missing Authorization header" }), {
+          status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
       const token = authHeader.replace(/^Bearer /, "");
       try {
         const parts = token.split(".");
@@ -49,6 +55,10 @@ Deno.serve(async (req) => {
           status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+    } else {
+      return new Response(JSON.stringify({ error: "Invalid credentials" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const body = await req.json();
