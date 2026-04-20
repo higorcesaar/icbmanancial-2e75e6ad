@@ -64,6 +64,7 @@ Deno.serve(async (req) => {
 
     if (role && created.user) {
       await admin.from("user_roles").upsert({ user_id: created.user.id, role });
+      await admin.from("profiles").upsert({ id: created.user.id, display_name, email });
     }
 
     return new Response(JSON.stringify({ success: true, user: created.user }), {
