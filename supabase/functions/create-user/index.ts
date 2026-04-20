@@ -12,50 +12,24 @@ Deno.serve(async (req) => {
   try {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const ANON = Deno.env.get("SUPABASE_ANON_KEY") ?? Deno.env.get("SUPABASE_PUBLISHABLE_KEY")!;
 
-    const apikey = req.headers.get("apikey");
-    if (!apikey) {
-      return new Response(JSON.stringify({ error: "Missing apikey" }), {
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Missing authorization" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const isServiceRole = authHeader === SERVICE_ROLE || authHeader.startsWith(`Bearer ${SERVICE_ROLE}`);
+
+    if (!isServiceRole) {
+      return new Response(JSON.stringify({ error: "Unauthorized - service role required" }), {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
-
-    const isServiceRole = apikey === SERVICE_ROLE;
-    let callerUserId: string | null = null;
-
-    if (isServiceRole) {
-      console.log("Service role authenticated request");
-    } else {
-      // Get user JWT from custom header (Authorization is validated by Supabase and fails with ES256)
-      const userJwt = req.headers.get("x-user-jwt");
-      if (!userJwt) {
-        return new Response(JSON.stringify({ error: "Missing x-user-jwt header" }), {
-          status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-
-      try {
-        const parts = userJwt.split(".");
-        if (parts.length !== 3) throw new Error("Invalid token format");
-        const payload = JSON.parse(atob(parts[1]));
-        callerUserId = payload.sub;
-      } catch (_e) {
-        return new Response(JSON.stringify({ error: "Unauthorized" }), {
-          status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-
-      const { data: roleRow } = await admin
-        .from("user_roles").select("role").eq("user_id", callerUserId).eq("role", "admin").maybeSingle();
-      if (!roleRow) {
-        return new Response(JSON.stringify({ error: "Apenas administradores podem realizar esta ação" }), {
-          status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-    }
+    console.log("Service role authenticated request");
 
     const body = await req.json();
     const { action } = body;
