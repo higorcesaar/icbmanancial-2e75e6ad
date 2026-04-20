@@ -24,41 +24,42 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { email, password, full_name, role } = body;
+    const { action } = body;
 
-    if (!email || !password) {
-      throw new Error("Email e senha são obrigatórios para novo usuário");
+    if (action === "delete") {
+      const { error } = await supabase.auth.admin.deleteUser(body.user_id);
+      if (error) throw error;
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
-      email: email,
-      password: password,
-      email_confirm: true,
-      user_metadata: { full_name: full_name },
+    if (action === "change_password") {
+      const { data: prof, error: pErr } = await supabase
+        .from("profiles").select("user_id").eq("id", body.user_id).maybeSingle();
+      if (pErr) throw pErr;
+      const targetId = prof?.user_id ?? body.user_id;
+      const { error } = await supabase.auth.admin.updateUserById(targetId, { password: body.new_password });
+      if (error) throw error;
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const { email, password, display_name, role } = body;
+    const { data: created, error: cErr } = await supabase.auth.admin.createUser({
+      email, password, email_confirm: true, user_metadata: { display_name },
     });
+    if (cErr) throw cErr;
 
-    if (createError) throw createError;
+    if (role && created.user) {
+      await supabase.from("user_roles").upsert({ user_id: created.user.id, role });
+      await supabase.from("profiles").upsert({ id: created.user.id, display_name, email });
+    }
 
-    const { error: profileError } = await supabase.from("profiles").insert({
-      id: newUser.user.id,
-      email: email,
-      full_name: full_name,
-      updated_at: new Date().toISOString(),
+    return new Response(JSON.stringify({ success: true, user: created.user }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-
-    if (profileError) throw profileError;
-
-    const { error: roleError } = await supabase.from("user_roles").insert({
-      user_id: newUser.user.id,
-      role: role || "member",
-    });
-
-    if (roleError) throw roleError;
-
-    return new Response(
-      JSON.stringify({ success: true, userId: newUser.user.id }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
   } catch (err: any) {
     console.error("create-user error:", err);
     return new Response(JSON.stringify({ error: err.message ?? "Internal error" }), {
