@@ -53,10 +53,8 @@ Deno.serve(async (req) => {
     }
 
     if (action === "change_password") {
-      const { data: prof, error: pErr } = await supabase
-        .from("profiles").select("user_id").eq("id", body.user_id).maybeSingle();
-      if (pErr) throw pErr;
-      const targetId = prof?.user_id ?? body.user_id;
+      // body.user_id is now the auth user_id (not profile.id)
+      const targetId = body.user_id;
       const { error } = await supabase.auth.admin.updateUserById(targetId, { password: body.new_password });
       if (error) throw error;
       return new Response(JSON.stringify({ success: true }), {
