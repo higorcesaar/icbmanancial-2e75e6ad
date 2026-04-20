@@ -472,7 +472,7 @@ function ScheduleEditDialog({ open, onOpenChange, date, schedule, members, outfi
 
   const saveCustomTypes = (list: string[]) => {
     setCustomTypes(list);
-    try { localStorage.setItem(CUSTOM_TYPES_KEY, JSON.stringify(list)); } catch {}
+    try { localStorage.setItem(CUSTOM_TYPES_KEY, JSON.stringify(list)); } catch { /* storage full or disabled */ }
   };
 
   // Merge default types with custom types (no duplicates)
@@ -485,6 +485,7 @@ function ScheduleEditDialog({ open, onOpenChange, date, schedule, members, outfi
       result.push({ label: t.charAt(0).toUpperCase() + t.slice(1), deletable: true });
     });
     return result;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [customTypes]);
 
   useEffect(() => {
@@ -507,6 +508,7 @@ function ScheduleEditDialog({ open, onOpenChange, date, schedule, members, outfi
         setSelectedAccessories([]);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, schedule]);
 
   const queryClient = useQueryClient();
