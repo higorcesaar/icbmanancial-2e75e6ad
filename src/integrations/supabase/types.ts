@@ -98,6 +98,66 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          email: string | null
+          id: string
+          is_active: boolean
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id: string
+          is_active?: boolean
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      schedule_accessories: {
+        Row: {
+          accessory_id: string
+          id: string
+          schedule_id: string
+        }
+        Insert: {
+          accessory_id: string
+          id?: string
+          schedule_id: string
+        }
+        Update: {
+          accessory_id?: string
+          id?: string
+          schedule_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "schedule_accessories_accessory_id_fkey"
+            columns: ["accessory_id"]
+            isOneToOne: false
+            referencedRelation: "accessories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "schedule_accessories_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "schedules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       schedule_members: {
         Row: {
           id: string

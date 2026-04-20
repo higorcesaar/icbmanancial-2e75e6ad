@@ -1,0 +1,197 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800&family=Quicksand:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 340 40% 98%;
+    --foreground: 340 20% 18%;
+
+    --card: 0 0% 100% / 0.7; /* Added transparency to base card variable */
+    --card-foreground: 340 20% 18%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 340 20% 18%;
+
+    --primary: 340 72% 65%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 340 45% 93%;
+    --secondary-foreground: 340 20% 30%;
+
+    --muted: 340 25% 95%;
+    --muted-foreground: 340 10% 50%;
+
+    --accent: 280 55% 75%;
+    --accent-foreground: 280 40% 20%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 340 25% 90%;
+    --input: 340 25% 88%;
+    --ring: 340 72% 65%;
+
+    --radius: 1rem;
+
+    --sidebar-background: 340 35% 97%;
+    --sidebar-foreground: 340 20% 25%;
+    --sidebar-primary: 340 72% 65%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 280 45% 90%;
+    --sidebar-accent-foreground: 280 40% 25%;
+    --sidebar-border: 340 25% 92%;
+    --sidebar-ring: 340 72% 65%;
+
+    --gradient-rose: linear-gradient(135deg, hsl(340, 72%, 65%), hsl(320, 60%, 72%));
+    --gradient-lilac: linear-gradient(135deg, hsl(280, 55%, 75%), hsl(300, 45%, 80%));
+    --gradient-warm: linear-gradient(135deg, hsl(340, 60%, 96%), hsl(340, 50%, 92%), hsl(280, 50%, 94%));
+    --shadow-rose: 0 8px 32px -8px hsl(340 72% 65% / 0.25);
+    --shadow-soft: 0 4px 24px -4px hsl(340 20% 18% / 0.06);
+    --shadow-card: 0 1px 3px hsl(340 20% 18% / 0.04), 0 4px 16px hsl(340 20% 18% / 0.06);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Nunito', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Quicksand', sans-serif;
+    font-weight: 700;
+  }
+}
+
+@layer utilities {
+  .glass-card {
+    @apply bg-white/5 backdrop-blur-2xl border border-white/20 shadow-xl;
+  }
+
+  .gradient-rose {
+    background: var(--gradient-rose);
+  }
+
+  .gradient-warm {
+    background: var(--gradient-warm);
+  }
+
+  .shadow-rose {
+    box-shadow: var(--shadow-rose);
+  }
+
+  .text-gradient {
+    background: var(--gradient-rose);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .animate-pulse-slow {
+    animation: pulse-slow 8s ease-in-out infinite;
+  }
+
+  @keyframes pulse-slow {
+    0%, 100% { opacity: 0.1; transform: scale(1); }
+    50% { opacity: 0.3; transform: scale(1.1); }
+  }
+
+  @keyframes dialog-overlay-enter {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes dialog-content-enter {
+    from { 
+      opacity: 0; 
+      transform: translate(-50%, -48%) scale(0.96); 
+    }
+    to { 
+      opacity: 1; 
+      transform: translate(-50%, -50%) scale(1); 
+    }
+  }
+
+  @keyframes dialog-content-exit {
+    from { 
+      opacity: 1; 
+      transform: translate(-50%, -50%) scale(1); 
+    }
+    to { 
+      opacity: 0; 
+      transform: translate(-50%, -48%) scale(0.96); 
+    }
+  }
+}
+
+.dialog-overlay-enter {
+  animation: dialog-overlay-enter 250ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+[data-state="open"] .dialog-content-enter {
+  animation: dialog-content-enter 280ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes sheet-overlay-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes sheet-slide-in-right {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes sheet-slide-out-right {
+  from { transform: translateX(0); }
+  to { transform: translateX(100%); }
+}
+
+@keyframes sheet-slide-in-left {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes sheet-slide-out-left {
+  from { transform: translateX(0); }
+  to { transform: translateX(-100%); }
+}
+
+@keyframes sheet-slide-in-bottom {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes sheet-slide-out-bottom {
+  from { transform: translateY(0); }
+  to { transform: translateY(100%); }
+}
+
+@keyframes sheet-slide-in-top {
+  from { transform: translateY(-100%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes sheet-slide-out-top {
+  from { transform: translateY(0); }
+  to { transform: translateY(-100%); }
+}
+
+.sheet-overlay-enter {
+  animation: sheet-overlay-enter 300ms ease-out forwards;
+}
+
+[data-state="open"][data-radix-collection-item] {
+  animation: sheet-slide-in-right 380ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+[data-state="open"] [data-radix-collection-item] {
+  animation: sheet-slide-in-right 380ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
