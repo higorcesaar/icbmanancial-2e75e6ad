@@ -35,7 +35,18 @@ export async function setupPWA() {
 
   try {
     const { registerSW } = await import("virtual:pwa-register");
-    registerSW({ immediate: true });
+    registerSW({
+      immediate: true,
+      onNeedRefresh: () => {
+        const update = confirm("Uma nova versão está disponível! Deseja atualizar agora?");
+        if (update) {
+          window.location.reload();
+        }
+      },
+      onOfflineReady: () => {
+        console.log("App ready to work offline");
+      },
+    });
   } catch {
     /* noop */
   }

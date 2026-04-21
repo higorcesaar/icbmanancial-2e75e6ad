@@ -14,6 +14,7 @@ const mainItems = [
   { title: 'Fardamentos', url: '/roupas', icon: Shirt, adminOnly: false },
   { title: 'Acessórios', url: '/acessorios', icon: Sparkles, adminOnly: false },
   { title: 'Histórico', url: '/historico', icon: History, adminOnly: true },
+  { title: 'Usuários', url: '/usuarios', icon: UserCog, adminOnly: true },
 ];
 
 export function AppSidebar() {
@@ -56,21 +57,6 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
-              {(
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <NavLink
-                      to="/usuarios"
-                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-muted-foreground hover:bg-primary/10 hover:text-foreground transition-all duration-200"
-                      activeClassName="bg-primary/15 text-primary font-semibold shadow-sm"
-                      onClick={handleNavClick}
-                    >
-                      <UserCog className="h-[18px] w-[18px]" />
-                      {!collapsed && <span className="text-sm">Usuários</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
