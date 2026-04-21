@@ -86,8 +86,16 @@ export default function UserManagement() {
   });
 
   const toggleActive = async (profile: any) => {
-    await supabase.from('profiles').update({ is_active: !profile.is_active }).eq('id', profile.id);
-    queryClient.invalidateQueries({ queryKey: ['profiles'] });
+    const { error } = await supabase
+      .from('profiles')
+      .update({ is_active: !profile.is_active })
+      .eq('id', profile.id);
+    if (error) {
+      console.error('Erro ao alternar status:', error);
+      toast.error('Erro ao atualizar status: ' + error.message);
+      return;
+    }
+    queryClient.invalidateQueries({ queryKey: ['profiles-with-roles'] });
     toast.success(profile.is_active ? 'Conta desativada' : 'Conta ativada');
   };
 
@@ -125,7 +133,7 @@ export default function UserManagement() {
       });
       if (res.error) throw new Error(res.error.message);
       if (res.data?.error) throw new Error(res.data.error);
-      queryClient.invalidateQueries({ queryKey: ['profiles'] });
+      queryClient.invalidateQueries({ queryKey: ['profiles-with-roles'] });
       toast.success('Usuário excluído');
     } catch (err: any) {
       toast.error(translateError(err.message || 'Erro ao excluir'));
@@ -269,7 +277,7 @@ export default function UserManagement() {
       )}
 
       <CreateUserDialog open={dialogOpen} onOpenChange={setDialogOpen} onCreated={() => {
-        queryClient.invalidateQueries({ queryKey: ['profiles'] });
+        queryClient.invalidateQueries({ queryKey: ['profiles-with-roles'] });
         setDialogOpen(false);
       }} />
 
