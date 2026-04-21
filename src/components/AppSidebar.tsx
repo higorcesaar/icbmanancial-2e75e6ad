@@ -18,7 +18,7 @@ const mainItems = [
 ];
 
 export function AppSidebar() {
-  const { isAdmin, signOut, user } = useAuth();
+  const { isAdmin, signOut, user, role } = useAuth();
   const { state, setOpenMobile } = useSidebar();
   const collapsed = state === 'collapsed';
   const isMobile = useIsMobile();
@@ -41,7 +41,10 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent className="mt-8">
             <SidebarMenu className="space-y-1 px-2">
-              {mainItems.filter(item => !item.adminOnly || isAdmin).map(item => (
+              {mainItems.filter(item => {
+                if (item.title === 'Usuários' && role === 'ministra') return false;
+                return !item.adminOnly || isAdmin;
+              }).map(item => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink
