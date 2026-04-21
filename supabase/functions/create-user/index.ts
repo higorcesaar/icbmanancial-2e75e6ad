@@ -45,8 +45,17 @@ Deno.serve(async (req) => {
     const { action } = body;
 
     if (action === "delete") {
-      const { error } = await admin.auth.admin.deleteUser(body.user_id);
-      if (error) throw error;
+      // body.user_id may be profiles.id; resolve to auth user_id
+      const { data: prof } = await admin
+        .from("profiles").select("user_id").eq("id", body.user_id).maybeSingle();
+      const targetId = prof?.user_id ?? body.user_id;
+
+      // Clean up app data first (role + profile), then delete auth user
+      await admin.from("user_roles").delete().eq("user_id", targetId);
+      await admin.from("profiles").delete().eq("user_id", targetId);
+
+      const { error } = await admin.auth.admin.deleteUser(targetId);
+      if (error && (error as any).status !== 404) throw error;
       return new Response(JSON.stringify({ success: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
