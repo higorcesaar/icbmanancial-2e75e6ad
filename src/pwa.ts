@@ -11,19 +11,19 @@ const isInIframe = (() => {
 })();
 
 const hostname = window.location.hostname;
-const shouldEnablePWA =
-  !hostname.includes("id-preview--") &&
-  !hostname.includes("lovableproject.com") &&
-  hostname !== "localhost" &&
-  hostname !== "127.0.0.1" &&
-  !isInIframe;
+const isPreviewHost =
+  hostname.includes("id-preview--") ||
+  hostname.includes("lovableproject.com") ||
+  hostname === "localhost" ||
+  hostname === "127.0.0.1";
 
-let refreshSW: (() => void) | null = null;
+const shouldEnablePWA = !isInIframe && !isPreviewHost;
 
 export async function setupPWA() {
   if (!("serviceWorker" in navigator)) return;
 
   if (!shouldEnablePWA) {
+    // Clean up any previously registered SW in preview/iframe contexts
     try {
       const regs = await navigator.serviceWorker.getRegistrations();
       await Promise.all(regs.map((r) => r.unregister()));
@@ -35,26 +35,9 @@ export async function setupPWA() {
 
   try {
     const { registerSW } = await import("virtual:pwa-register");
-    const { update } = await registerSW({
-      immediate: true,
-      onNeedRefresh: () => {
-        if (refreshSW) {
-          refreshSW();
-        }
-      },
-      onOfflineReady: () => {
-        console.log("App ready to work offline");
-      },
-    });
-    refreshSW = update;
+    registerSW({ immediate: true });
   } catch {
     /* noop */
-  }
-}
-
-export async function updateApp() {
-  if (refreshSW) {
-    await refreshSW();
   }
 }
 

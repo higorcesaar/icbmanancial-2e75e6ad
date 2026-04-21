@@ -282,12 +282,8 @@ export default function UserManagement() {
       }} />
 
       {/* Change Password Dialog */}
-      <Dialog open={!!passwordDialog} onOpenChange={(open) => {
-        if (!open) setPasswordDialog(null);
-      }}>
-        <DialogContent className="rounded-2xl border-0 glass-card" onInteractOutside={(e) => {
-          e.preventDefault();
-        }}>
+      <Dialog open={!!passwordDialog} onOpenChange={(open) => !open && setPasswordDialog(null)}>
+        <DialogContent className="rounded-2xl border-0 glass-card">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold flex items-center gap-2">
               <KeyRound className="h-5 w-5 text-primary" /> Alterar Senha
@@ -305,7 +301,6 @@ export default function UserManagement() {
                 onChange={e => setNewPassword(e.target.value)}
                 placeholder="Mínimo 6 caracteres"
                 className="rounded-xl bg-muted/30 border-border/40"
-                autoFocus
               />
             </div>
             <Button onClick={handleChangePassword} disabled={changingPassword} className="w-full h-11 rounded-xl gradient-rose text-white font-semibold border-0 shadow-rose hover:opacity-90">

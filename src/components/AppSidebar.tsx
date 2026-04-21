@@ -14,11 +14,10 @@ const mainItems = [
   { title: 'Fardamentos', url: '/roupas', icon: Shirt, adminOnly: false },
   { title: 'Acessórios', url: '/acessorios', icon: Sparkles, adminOnly: false },
   { title: 'Histórico', url: '/historico', icon: History, adminOnly: true },
-  { title: 'Usuários', url: '/usuarios', icon: UserCog, adminOnly: true },
 ];
 
 export function AppSidebar() {
-  const { isAdmin, signOut, user, role } = useAuth();
+  const { isAdmin, signOut, user } = useAuth();
   const { state, setOpenMobile } = useSidebar();
   const collapsed = state === 'collapsed';
   const isMobile = useIsMobile();
@@ -41,10 +40,7 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent className="mt-8">
             <SidebarMenu className="space-y-1 px-2">
-              {mainItems.filter(item => {
-                if (item.title === 'Usuários' && role === 'ministra') return false;
-                return !item.adminOnly || isAdmin;
-              }).map(item => (
+              {mainItems.filter(item => !item.adminOnly || isAdmin).map(item => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink
@@ -60,6 +56,21 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+              {(
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink
+                      to="/usuarios"
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-muted-foreground hover:bg-primary/10 hover:text-foreground transition-all duration-200"
+                      activeClassName="bg-primary/15 text-primary font-semibold shadow-sm"
+                      onClick={handleNavClick}
+                    >
+                      <UserCog className="h-[18px] w-[18px]" />
+                      {!collapsed && <span className="text-sm">Usuários</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

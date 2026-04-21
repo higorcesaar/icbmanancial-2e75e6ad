@@ -18,39 +18,9 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: "autoUpdate",
-      injectRegister: "auto",
-      manifest: {
-        name: "Escala Manancial",
-        short_name: "Manancial",
-        description: "Gerenciador da Escala Manancial — organizado com carinho para você",
-        start_url: "/",
-        scope: "/",
-        display: "standalone",
-        orientation: "portrait",
-        background_color: "#000000",
-        theme_color: "#f43f5e",
-        lang: "pt-BR",
-        icons: [
-          {
-            src: "icon.svg",
-            sizes: "any",
-            type: "image/svg+xml",
-            purpose: "any",
-          },
-          {
-            src: "apple-touch-icon-180x180.png",
-            sizes: "180x180",
-            type: "image/png",
-            purpose: "any",
-          },
-          {
-            src: "logo-manancial-transparent.png",
-            sizes: "512x512",
-            type: "image/png",
-            purpose: "any maskable",
-          },
-        ],
-      },
+      injectRegister: false,
+      strategies: "generateSW",
+      manifest: false,
       includeAssets: [
         "icon.svg",
         "apple-touch-icon-180x180.png",
