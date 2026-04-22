@@ -165,13 +165,15 @@ function MemberDialog({ open, onOpenChange, member, onSaved }: any) {
                   <Camera className="h-7 w-7 text-muted-foreground/40" />
                 </div>
               )}
-              <Input
-                type="file"
-                accept="image/*"
-                capture="user"
-                onChange={e => handleFile(e.target.files?.[0] ?? null)}
-                className="rounded-xl text-xs flex-1"
-              />
+              <div className="flex-1 space-y-1">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={e => handleFile(e.target.files?.[0] ?? null)}
+                  className="rounded-xl text-xs file:mr-2 file:rounded-lg file:border-0 file:bg-primary/10 file:text-primary file:font-semibold file:px-2 file:py-1"
+                />
+                <p className="text-[10px] text-muted-foreground/70">Galeria, câmera ou arquivo</p>
+              </div>
             </div>
           </div>
           <div className="space-y-2">
