@@ -223,10 +223,10 @@ function OutfitDialog({ open, onOpenChange, outfit, onSaved }: any) {
               <Input
                 type="file"
                 accept="image/*"
-                capture="environment"
                 onChange={e => handleFile(e.target.files?.[0] ?? null, 'front')}
-                className="rounded-xl text-xs"
+                className="rounded-xl text-xs file:mr-2 file:rounded-lg file:border-0 file:bg-primary/10 file:text-primary file:font-semibold file:px-2 file:py-1"
               />
+              <p className="text-[10px] text-muted-foreground/70 text-center">Galeria, câmera ou arquivo</p>
             </div>
 
             <div className="space-y-2">
@@ -241,10 +241,10 @@ function OutfitDialog({ open, onOpenChange, outfit, onSaved }: any) {
               <Input
                 type="file"
                 accept="image/*"
-                capture="environment"
                 onChange={e => handleFile(e.target.files?.[0] ?? null, 'back')}
-                className="rounded-xl text-xs"
+                className="rounded-xl text-xs file:mr-2 file:rounded-lg file:border-0 file:bg-primary/10 file:text-primary file:font-semibold file:px-2 file:py-1"
               />
+              <p className="text-[10px] text-muted-foreground/70 text-center">Galeria, câmera ou arquivo</p>
             </div>
           </div>
 
