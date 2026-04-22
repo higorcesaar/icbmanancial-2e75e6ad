@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ChevronLeft, ChevronRight, Church, Music, Users, Plus, CalendarDays, Shirt, Sparkles, Scissors, BarChart3, X, Trash2 } from 'lucide-react';
+import { OutfitViewer } from '@/components/OutfitViewer';
 
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths, isSameDay, isToday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -24,6 +25,7 @@ export default function Dashboard() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [escalaOpen, setEscalaOpen] = useState(false);
+  const [viewingOutfit, setViewingOutfit] = useState<any>(null);
 
   useRealtimeTable(
     ['schedules', 'schedule_members', 'schedule_outfits', 'schedule_accessories', 'members', 'outfits', 'accessories'],
@@ -301,9 +303,14 @@ export default function Dashboard() {
                         </p>
                         <div className="flex flex-wrap gap-2">
                           {selectedSchedule.schedule_outfits.map((so: any) => (
-                            <span key={so.id} className="bg-primary/12 text-primary text-sm font-semibold px-3.5 py-1.5 rounded-full">
+                            <button
+                              key={so.id}
+                              onClick={() => setViewingOutfit(so.outfits)}
+                              className="bg-primary/12 text-primary text-sm font-semibold px-3.5 py-1.5 rounded-full hover:bg-primary/25 transition-colors cursor-pointer"
+                              title="Ver fardamento em 360°"
+                            >
                               {so.outfits?.name}
-                            </span>
+                            </button>
                           ))}
                         </div>
                       </div>
@@ -440,6 +447,29 @@ export default function Dashboard() {
               </div>
             )}
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Outfit 360° Viewer */}
+      <Dialog open={!!viewingOutfit} onOpenChange={(o) => !o && setViewingOutfit(null)}>
+        <DialogContent className="max-w-md rounded-2xl border-0 glass-card">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold flex items-center gap-2">
+              <Shirt className="h-5 w-5 text-primary" />
+              {viewingOutfit?.name}
+            </DialogTitle>
+          </DialogHeader>
+          {viewingOutfit && (
+            <OutfitViewer
+              frontUrl={viewingOutfit.image_front_url}
+              backUrl={viewingOutfit.image_back_url}
+              fallbackUrl={viewingOutfit.image_url}
+              name={viewingOutfit.name}
+            />
+          )}
+          {viewingOutfit?.description && (
+            <p className="text-sm text-muted-foreground">{viewingOutfit.description}</p>
+          )}
         </DialogContent>
       </Dialog>
     </div>
