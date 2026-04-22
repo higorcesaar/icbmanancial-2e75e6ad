@@ -9,7 +9,7 @@ import {
 import { Button } from '@/components/ui/button';
 
 const mainItems = [
-  { title: 'Dashboard', url: '/', icon: Calendar, adminOnly: false },
+  { title: 'Escala', url: '/', icon: Calendar, adminOnly: false },
   { title: 'Ministras', url: '/membros', icon: Users, adminOnly: true },
   { title: 'Fardamentos', url: '/roupas', icon: Shirt, adminOnly: false },
   { title: 'Acessórios', url: '/acessorios', icon: Sparkles, adminOnly: false },
