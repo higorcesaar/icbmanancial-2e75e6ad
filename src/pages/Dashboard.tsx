@@ -449,6 +449,29 @@ export default function Dashboard() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Outfit 360° Viewer */}
+      <Dialog open={!!viewingOutfit} onOpenChange={(o) => !o && setViewingOutfit(null)}>
+        <DialogContent className="max-w-md rounded-2xl border-0 glass-card">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold flex items-center gap-2">
+              <Shirt className="h-5 w-5 text-primary" />
+              {viewingOutfit?.name}
+            </DialogTitle>
+          </DialogHeader>
+          {viewingOutfit && (
+            <OutfitViewer
+              frontUrl={viewingOutfit.image_front_url}
+              backUrl={viewingOutfit.image_back_url}
+              fallbackUrl={viewingOutfit.image_url}
+              name={viewingOutfit.name}
+            />
+          )}
+          {viewingOutfit?.description && (
+            <p className="text-sm text-muted-foreground">{viewingOutfit.description}</p>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
