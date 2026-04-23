@@ -286,14 +286,22 @@ export default function UserManagement() {
       }} />
 
       {/* Change Password Dialog */}
-      <Dialog open={!!passwordDialog} onOpenChange={(open) => !open && setPasswordDialog(null)}>
-        <DialogContent className="rounded-2xl border-0 glass-card">
+      <Dialog open={!!passwordDialog} onOpenChange={(open) => !open && !changingPassword && setPasswordDialog(null)}>
+        <DialogContent
+          className="rounded-2xl border-0 glass-card"
+          onEscapeKeyDown={(e) => e.preventDefault()}
+          onInteractOutside={(e) => e.preventDefault()}
+          onPointerDownOutside={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle className="text-lg font-bold flex items-center gap-2">
               <KeyRound className="h-5 w-5 text-primary" /> Alterar Senha
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 mt-2">
+          <form
+            onSubmit={(e) => { e.preventDefault(); handleChangePassword(); }}
+            className="space-y-4 mt-2"
+          >
             <p className="text-sm text-muted-foreground">
               Alterando senha de <strong>{passwordDialog?.display_name ?? passwordDialog?.email}</strong>
             </p>
@@ -304,13 +312,19 @@ export default function UserManagement() {
                 value={newPassword}
                 onChange={e => setNewPassword(e.target.value)}
                 placeholder="Mínimo 6 caracteres"
+                autoComplete="new-password"
                 className="rounded-xl bg-muted/30 border-border/40"
               />
             </div>
-            <Button onClick={handleChangePassword} disabled={changingPassword} className="w-full h-11 rounded-xl gradient-rose text-white font-semibold border-0 shadow-rose hover:opacity-90">
-              {changingPassword ? 'Alterando...' : 'Confirmar 💖'}
-            </Button>
-          </div>
+            <div className="flex gap-2">
+              <Button type="button" variant="outline" onClick={() => setPasswordDialog(null)} disabled={changingPassword} className="flex-1 h-11 rounded-xl">
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={changingPassword} className="flex-1 h-11 rounded-xl gradient-rose text-white font-semibold border-0 shadow-rose hover:opacity-90">
+                {changingPassword ? 'Alterando...' : 'Confirmar 💖'}
+              </Button>
+            </div>
+          </form>
         </DialogContent>
       </Dialog>
     </div>
