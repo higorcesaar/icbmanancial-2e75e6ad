@@ -605,7 +605,7 @@ function ScheduleEditDialog({ open, onOpenChange, date, schedule, members, outfi
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl border-0 glass-card">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">
-            {schedule ? 'Editar Escala' : 'Nova Escala'} — {format(date, "d 'de' MMMM", { locale: ptBR })}
+            {schedule ? 'Editar Escala' : 'Nova Escala'} — {format(date, "d 'de' MMMM", { locale: ptBR })} ({type.charAt(0).toUpperCase() + type.slice(1)})
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-5 mt-2">
