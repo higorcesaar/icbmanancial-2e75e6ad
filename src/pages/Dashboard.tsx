@@ -222,9 +222,7 @@ export default function Dashboard() {
                     >
                       {day.getDate()}
                       {hasSchedule && (
-                        <span className={`text-[8px] leading-none font-bold uppercase ${isSelected ? 'text-white/80' : 'text-primary/70'}`}>
-                          {daySchedule.type === 'culto' ? '⛪' : '🎵'}
-                        </span>
+                        <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white/90' : 'bg-primary'}`} />
                       )}
                     </button>
                   );
@@ -242,12 +240,6 @@ export default function Dashboard() {
                 <div>
                   <CardTitle className="text-lg sm:text-xl text-foreground">
                     {selectedDate ? format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR }) : 'Selecione uma data'}
-                    {selectedSchedule && (
-                      <span className="ml-2 inline-flex items-center gap-1 text-sm font-semibold px-2.5 py-0.5 rounded-full bg-primary/15 text-primary capitalize">
-                        {selectedSchedule.type === 'culto' ? <Church className="h-3.5 w-3.5" /> : <Music className="h-3.5 w-3.5" />}
-                        {selectedSchedule.type}
-                      </span>
-                    )}
                   </CardTitle>
                   {selectedDate && (
                     <p className="text-xs text-muted-foreground mt-1">
