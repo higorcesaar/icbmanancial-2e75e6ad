@@ -491,7 +491,7 @@ export default function Dashboard() {
 }
 
 function ScheduleEditDialog({ open, onOpenChange, date, schedule, members, outfits, accessories, onSave }: any) {
-  const DEFAULT_TYPES = ['Celebração', 'Culto RCE', 'Congresso', 'Conferência', 'Aniversário Da Igreja'];
+  const DEFAULT_TYPES = ['Celebração', 'RCE', 'Congresso', 'Conferência', 'Aniversário Da Igreja'];
   const [type, setType] = useState(DEFAULT_TYPES[0].toLowerCase());
   const [customTypeInput, setCustomTypeInput] = useState('');
   const [showCustomInput, setShowCustomInput] = useState(false);
@@ -582,7 +582,7 @@ function ScheduleEditDialog({ open, onOpenChange, date, schedule, members, outfi
 
   const handleSave = async () => {
     if (!type.trim()) {
-      toast.error('Digite o tipo do evento');
+      toast.error('Digite o tipo de culto');
       return;
     }
     setSaving(true);
@@ -655,7 +655,7 @@ function ScheduleEditDialog({ open, onOpenChange, date, schedule, members, outfi
         <div className="space-y-5 mt-2">
           {/* Type */}
           <div className="space-y-2">
-            <label className="text-xs uppercase tracking-wider font-bold text-muted-foreground">Tipo do Evento</label>
+            <label className="text-xs uppercase tracking-wider font-bold text-muted-foreground">Tipo de Culto</label>
             <div className="flex flex-wrap gap-2">
               {allTypes.map(t => (
                 <div key={t.label} className="relative group/type inline-flex">
