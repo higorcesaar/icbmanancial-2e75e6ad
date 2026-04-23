@@ -5,10 +5,11 @@ import { useRealtimeTable } from '@/hooks/use-realtime-table';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { ChevronLeft, ChevronRight, Users, Plus, CalendarDays, Shirt, Sparkles, Scissors, BarChart3, X, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Users, Plus, CalendarDays, Shirt, Sparkles, Scissors, BarChart3, X, Trash2, Star } from 'lucide-react';
 import { OutfitViewer } from '@/components/OutfitViewer';
 
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths, isSameDay, isToday } from 'date-fns';
@@ -241,12 +242,10 @@ export default function Dashboard() {
 <CardTitle className="text-lg sm:text-xl text-foreground flex items-center gap-2 flex-wrap">
                     <span>{selectedDate ? format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR }) : 'Selecione uma data'}</span>
                     {selectedSchedule && (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20">
-                        <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
-                        <span className="text-xs font-semibold text-primary capitalize tracking-wide">
-                          {selectedSchedule.type}
-                        </span>
-                      </span>
+                      <Badge className="bg-rose-100 text-rose-700 border-rose-200 hover:bg-rose-200 gap-1.5">
+                        <Star className="h-3 w-3 fill-rose-400" />
+                        <span className="capitalize">{selectedSchedule.type}</span>
+                      </Badge>
                     )}
                   </CardTitle>
                   {selectedDate && (
