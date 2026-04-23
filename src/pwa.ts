@@ -63,13 +63,18 @@ export async function setupPWA() {
             /* noop */
           });
         };
-        // Check every 60 minutes while the app stays open
-        setInterval(checkForUpdate, 60 * 60 * 1000);
-        // And whenever the tab regains focus
+        // Check frequently for snappier updates on mobile/PWA
+        // Every 1 minute while open
+        setInterval(checkForUpdate, 60 * 1000);
+        // Whenever the tab regains focus or visibility changes
         window.addEventListener("focus", checkForUpdate);
         document.addEventListener("visibilitychange", () => {
           if (document.visibilityState === "visible") checkForUpdate();
         });
+        // Check on online reconnect too
+        window.addEventListener("online", checkForUpdate);
+        // Initial check shortly after registration
+        setTimeout(checkForUpdate, 2000);
       },
     });
   } catch {
