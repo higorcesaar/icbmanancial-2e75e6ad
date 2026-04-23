@@ -8,7 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { ChevronLeft, ChevronRight, Church, Music, Users, Plus, CalendarDays, Shirt, Sparkles, Scissors, BarChart3, X, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Users, Plus, CalendarDays, Shirt, Sparkles, Scissors, BarChart3, X, Trash2 } from 'lucide-react';
+import { OutfitViewer } from '@/components/OutfitViewer';
 
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths, isSameDay, isToday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -24,6 +25,7 @@ export default function Dashboard() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [escalaOpen, setEscalaOpen] = useState(false);
+  const [viewingOutfit, setViewingOutfit] = useState<any>(null);
 
   useRealtimeTable(
     ['schedules', 'schedule_members', 'schedule_outfits', 'schedule_accessories', 'members', 'outfits', 'accessories'],
@@ -220,9 +222,7 @@ export default function Dashboard() {
                     >
                       {day.getDate()}
                       {hasSchedule && (
-                        <span className={`text-[8px] leading-none font-bold uppercase ${isSelected ? 'text-white/80' : 'text-primary/70'}`}>
-                          {daySchedule.type === 'culto' ? '⛪' : '🎵'}
-                        </span>
+                        <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white/90' : 'bg-primary'}`} />
                       )}
                     </button>
                   );
@@ -240,12 +240,6 @@ export default function Dashboard() {
                 <div>
                   <CardTitle className="text-lg sm:text-xl text-foreground">
                     {selectedDate ? format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR }) : 'Selecione uma data'}
-                    {selectedSchedule && (
-                      <span className="ml-2 inline-flex items-center gap-1 text-sm font-semibold px-2.5 py-0.5 rounded-full bg-primary/15 text-primary capitalize">
-                        {selectedSchedule.type === 'culto' ? <Church className="h-3.5 w-3.5" /> : <Music className="h-3.5 w-3.5" />}
-                        {selectedSchedule.type}
-                      </span>
-                    )}
                   </CardTitle>
                   {selectedDate && (
                     <p className="text-xs text-muted-foreground mt-1">
@@ -289,11 +283,6 @@ export default function Dashboard() {
                     exit={{ opacity: 0, y: -10 }}
                     className="space-y-4"
                   >
-                    <div className="flex items-center gap-3 p-3 rounded-xl bg-primary/8">
-                      {selectedSchedule.type === 'culto' ? <Church className="h-5 w-5 text-primary" /> : <Music className="h-5 w-5 text-accent" />}
-                      <span className="capitalize font-bold text-foreground">{selectedSchedule.type}</span>
-                    </div>
-
                     {selectedSchedule.schedule_outfits?.length > 0 && (
                       <div className="space-y-2.5">
                         <p className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground flex items-center gap-2">
@@ -301,20 +290,28 @@ export default function Dashboard() {
                         </p>
                         <div className="flex flex-wrap gap-2">
                           {selectedSchedule.schedule_outfits.map((so: any) => (
-                            <span key={so.id} className="bg-primary/12 text-primary text-sm font-semibold px-3.5 py-1.5 rounded-full">
+                            <button
+                              key={so.id}
+                              onClick={() => setViewingOutfit(so.outfits)}
+                              className="bg-primary/12 text-primary text-sm font-semibold px-3.5 py-1.5 rounded-full hover:bg-primary/25 transition-colors cursor-pointer"
+                              title="Ver fardamento em 360°"
+                            >
                               {so.outfits?.name}
-                            </span>
+                            </button>
                           ))}
                         </div>
                       </div>
                     )}
 
                     {selectedSchedule.hair_style && (
-                      <div className="flex items-center gap-3 p-4 rounded-xl bg-secondary/50">
-                        <Scissors className="h-5 w-5 text-accent/70" />
-                        <div>
-                          <p className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">Cabelo</p>
-                          <p className="font-semibold text-foreground">{selectedSchedule.hair_style}</p>
+                      <div className="space-y-2.5">
+                        <p className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground flex items-center gap-2">
+                          <Scissors className="h-3.5 w-3.5" /> Cabelo
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          <span className="bg-primary/12 text-primary text-sm font-semibold px-3.5 py-1.5 rounded-full">
+                            {selectedSchedule.hair_style}
+                          </span>
                         </div>
                       </div>
                     )}
@@ -324,12 +321,29 @@ export default function Dashboard() {
                         <p className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground flex items-center gap-2">
                           <Users className="h-3.5 w-3.5" /> Ministras
                         </p>
-                        <div className="flex flex-wrap gap-2">
-                          {selectedSchedule.schedule_members.map((sm: any) => (
-                            <span key={sm.id} className="bg-primary/12 text-primary text-sm font-semibold px-3.5 py-1.5 rounded-full">
-                              {sm.members?.name}
-                            </span>
-                          ))}
+                        <div className="flex flex-wrap gap-3">
+                          {selectedSchedule.schedule_members.map((sm: any) => {
+                            const member = sm.members;
+                            const initial = (member?.name ?? '?').charAt(0).toUpperCase();
+                            return (
+                              <div key={sm.id} className="flex flex-col items-center gap-1.5 w-20">
+                                {member?.photo_url ? (
+                                  <img
+                                    src={member.photo_url}
+                                    alt={member.name}
+                                    className="w-16 h-16 rounded-full object-cover ring-2 ring-primary/20 shadow-sm"
+                                  />
+                                ) : (
+                                  <div className="w-16 h-16 rounded-full gradient-rose flex items-center justify-center text-white font-bold text-lg shadow-sm">
+                                    {initial}
+                                  </div>
+                                )}
+                                <span className="text-[11px] font-semibold text-foreground text-center leading-tight line-clamp-2">
+                                  {member?.name}
+                                </span>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     )}
@@ -341,7 +355,7 @@ export default function Dashboard() {
                         </p>
                         <div className="flex flex-wrap gap-2">
                           {selectedSchedule.schedule_accessories.map((sa: any) => (
-                            <span key={sa.id} className="bg-accent/15 text-accent-foreground text-sm font-semibold px-3.5 py-1.5 rounded-full">
+                            <span key={sa.id} className="bg-primary/12 text-primary text-sm font-semibold px-3.5 py-1.5 rounded-full">
                               {sa.accessories?.name}
                             </span>
                           ))}
@@ -440,6 +454,29 @@ export default function Dashboard() {
               </div>
             )}
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Outfit 360° Viewer */}
+      <Dialog open={!!viewingOutfit} onOpenChange={(o) => !o && setViewingOutfit(null)}>
+        <DialogContent className="max-w-md rounded-2xl border-0 glass-card">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold flex items-center gap-2">
+              <Shirt className="h-5 w-5 text-primary" />
+              {viewingOutfit?.name}
+            </DialogTitle>
+          </DialogHeader>
+          {viewingOutfit && (
+            <OutfitViewer
+              frontUrl={viewingOutfit.image_front_url}
+              backUrl={viewingOutfit.image_back_url}
+              fallbackUrl={viewingOutfit.image_url}
+              name={viewingOutfit.name}
+            />
+          )}
+          {viewingOutfit?.description && (
+            <p className="text-sm text-muted-foreground">{viewingOutfit.description}</p>
+          )}
         </DialogContent>
       </Dialog>
     </div>

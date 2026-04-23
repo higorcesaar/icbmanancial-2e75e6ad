@@ -2,6 +2,8 @@ import { Calendar, Users, Shirt, Sparkles, History, UserCog, LogOut } from 'luci
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/contexts/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarFooter, useSidebar,
@@ -9,19 +11,31 @@ import {
 import { Button } from '@/components/ui/button';
 
 const mainItems = [
-  { title: 'Dashboard', url: '/', icon: Calendar, adminOnly: false },
+  { title: 'Escala', url: '/', icon: Calendar, adminOnly: false },
   { title: 'Ministras', url: '/membros', icon: Users, adminOnly: true },
   { title: 'Fardamentos', url: '/roupas', icon: Shirt, adminOnly: false },
   { title: 'Acessórios', url: '/acessorios', icon: Sparkles, adminOnly: false },
   { title: 'Histórico', url: '/historico', icon: History, adminOnly: true },
-  { title: 'Usuários', url: '/usuarios', icon: UserCog, adminOnly: true },
 ];
 
 export function AppSidebar() {
-  const { isAdmin, signOut, user, role } = useAuth();
+  const { isAdmin, signOut, user } = useAuth();
   const { state, setOpenMobile } = useSidebar();
   const collapsed = state === 'collapsed';
   const isMobile = useIsMobile();
+
+  const { data: pendingCount = 0 } = useQuery({
+    queryKey: ['pending-requests-count'],
+    enabled: isAdmin,
+    refetchInterval: 30_000,
+    queryFn: async () => {
+      const { count } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pending');
+      return count ?? 0;
+    },
+  });
 
   const handleNavClick = () => {
     if (isMobile) setOpenMobile(false);
@@ -41,10 +55,7 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent className="mt-8">
             <SidebarMenu className="space-y-1 px-2">
-              {mainItems.filter(item => {
-                if (item.title === 'Usuários' && role === 'ministra') return false;
-                return !item.adminOnly || isAdmin;
-              }).map(item => (
+              {mainItems.filter(item => !item.adminOnly || isAdmin).map(item => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink
@@ -60,6 +71,37 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+              {(
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink
+                      to="/usuarios"
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-muted-foreground hover:bg-primary/10 hover:text-foreground transition-all duration-200 relative"
+                      activeClassName="bg-primary/15 text-primary font-semibold shadow-sm"
+                      onClick={handleNavClick}
+                    >
+                      <div className="relative">
+                        <UserCog className="h-[18px] w-[18px]" />
+                        {pendingCount > 0 && (
+                          <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-[16px] px-1 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center animate-pulse">
+                            {pendingCount}
+                          </span>
+                        )}
+                      </div>
+                      {!collapsed && (
+                        <span className="text-sm flex-1 flex items-center justify-between">
+                          Usuários
+                          {pendingCount > 0 && (
+                            <span className="ml-2 px-1.5 py-0.5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold">
+                              {pendingCount}
+                            </span>
+                          )}
+                        </span>
+                      )}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

@@ -8,10 +8,9 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Shield, UserCheck, UserX, Trash2, KeyRound } from 'lucide-react';
+import { Plus, Shield, UserCheck, UserX, Trash2, KeyRound, BellRing, Check, X } from 'lucide-react';
 import { toast } from 'sonner';
-import { Navigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const translateError = (error: string) => {
   if (error.includes('Password is known to be weak')) {
@@ -77,7 +76,7 @@ export default function UserManagement() {
       
       const merged = (pData || []).map(p => ({
         ...p,
-        role: rolesMap.get(p.id) || 'ministra'
+        role: rolesMap.get(p.user_id) || 'ministra'
       }));
 
       console.log('Usuários carregados com sucesso:', merged.length);
@@ -99,24 +98,28 @@ export default function UserManagement() {
     toast.success(profile.is_active ? 'Conta desativada' : 'Conta ativada');
   };
 
-  const changeRole = async (userId: string, newRole: string) => {
+  const changeRole = async (profile: any, newRole: string) => {
+    if (profile.role === newRole) return;
     try {
-      await supabase
+      // profile.id is profiles.id; we need the auth user_id
+      const targetUserId = profile.user_id ?? profile.id;
+
+      const { error: delErr } = await supabase
         .from('user_roles')
         .delete()
-        .eq('user_id', userId);
-      
-      const { error } = await supabase
+        .eq('user_id', targetUserId);
+      if (delErr) throw delErr;
+
+      const { error: insErr } = await supabase
         .from('user_roles')
-        .insert({ user_id: userId, role: newRole as any });
-      
-      if (error) throw error;
-      
-      queryClient.invalidateQueries({ queryKey: ['profiles-with-roles'] });
+        .insert({ user_id: targetUserId, role: newRole as any });
+      if (insErr) throw insErr;
+
+      await queryClient.invalidateQueries({ queryKey: ['profiles-with-roles'] });
       toast.success(`Permissão ${newRole === 'admin' ? 'de Admin' : 'de Ministra'} atualizada ✨`);
     } catch (err: any) {
       console.error('Erro ao atualizar cargo:', err);
-      toast.error('Erro ao salvar permissão no banco');
+      toast.error('Erro ao salvar permissão: ' + (err.message ?? 'desconhecido'));
     }
   };
 
@@ -160,6 +163,39 @@ export default function UserManagement() {
       toast.error(translateError(err.message || 'Erro ao alterar senha'));
     } finally {
       setChangingPassword(false);
+    }
+  };
+
+  const approveRequest = async (profile: any) => {
+    try {
+      await ensureSession();
+      const res = await supabase.functions.invoke('create-user', {
+        body: { action: 'approve_request', profile_id: profile.id },
+      });
+      if (res.error) throw new Error(res.error.message);
+      if (res.data?.error) throw new Error(res.data.error);
+      await queryClient.invalidateQueries({ queryKey: ['profiles-with-roles'] });
+      await queryClient.invalidateQueries({ queryKey: ['pending-requests-count'] });
+      toast.success(`${profile.display_name ?? profile.email} foi aprovada e adicionada às Ministras 💖`);
+    } catch (err: any) {
+      toast.error(err.message ?? 'Erro ao aprovar');
+    }
+  };
+
+  const rejectRequest = async (profile: any) => {
+    if (!confirm(`Recusar a solicitação de ${profile.display_name ?? profile.email}?`)) return;
+    try {
+      await ensureSession();
+      const res = await supabase.functions.invoke('create-user', {
+        body: { action: 'reject_request', profile_id: profile.id },
+      });
+      if (res.error) throw new Error(res.error.message);
+      if (res.data?.error) throw new Error(res.data.error);
+      await queryClient.invalidateQueries({ queryKey: ['profiles-with-roles'] });
+      await queryClient.invalidateQueries({ queryKey: ['pending-requests-count'] });
+      toast.success('Solicitação recusada');
+    } catch (err: any) {
+      toast.error(err.message ?? 'Erro ao recusar');
     }
   };
 
@@ -223,58 +259,118 @@ export default function UserManagement() {
         </Card>
       )}
 
-      {!isLoading && !queryError && (
-        <div className="space-y-3">
-        {profiles.map((p: any, i: number) => {
-          const role = p.role;
-          const isSelf = p.id === currentUser?.id;
-          return (
-            <motion.div key={p.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}>
-              <Card className="glass-card border-0 hover:shadow-rose transition-shadow duration-300">
-                <CardContent className="p-3 sm:p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-sm font-bold text-primary shrink-0">
-                      {(p.display_name ?? p.email ?? '?').charAt(0).toUpperCase()}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold truncate text-foreground text-sm sm:text-base">{p.display_name ?? p.email}</p>
-                      <p className="text-xs text-muted-foreground truncate">{p.email}</p>
-                    </div>
-                    <Badge variant={p.is_active ? 'default' : 'secondary'} className="text-[10px] shrink-0">
-                      {p.is_active ? 'Ativa' : 'Inativa'}
-                    </Badge>
+      {!isLoading && !queryError && (() => {
+        const pending = profiles.filter((p: any) => p.status === 'pending');
+        const approved = profiles.filter((p: any) => p.status !== 'pending');
+        return (
+          <>
+            {/* Pending requests section */}
+            <AnimatePresence>
+              {pending.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="space-y-3"
+                >
+                  <div className="flex items-center gap-2 px-1">
+                    <BellRing className="h-4 w-4 text-destructive animate-pulse" />
+                    <h3 className="text-sm font-bold uppercase tracking-widest text-destructive">
+                      Solicitações Pendentes ({pending.length})
+                    </h3>
                   </div>
-                  <div className="flex items-center gap-2 mt-3 flex-wrap">
-                    <Select value={role} onValueChange={v => changeRole(p.id, v)}>
-                      <SelectTrigger className="flex-1 min-w-[110px] rounded-xl bg-muted/30 border-border/40 text-xs h-8">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="admin"><div className="flex items-center gap-1"><Shield className="h-3 w-3" /> Admin</div></SelectItem>
-                        <SelectItem value="ministra">Ministra</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <div className="flex gap-1 ml-auto">
-                      <Button variant="ghost" size="icon" className="rounded-xl h-8 w-8 hover:bg-primary/10" title="Alterar senha" onClick={() => { setPasswordDialog(p); setNewPassword(''); }}>
-                        <KeyRound className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="rounded-xl h-8 w-8 hover:bg-primary/10" onClick={() => toggleActive(p)}>
-                        {p.is_active ? <UserX className="h-3.5 w-3.5" /> : <UserCheck className="h-3.5 w-3.5" />}
-                      </Button>
-                      {!isSelf && (
-                        <Button variant="ghost" size="icon" className="rounded-xl h-8 w-8 hover:bg-destructive/10 hover:text-destructive" onClick={() => deleteUser(p)}>
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          );
-        })}
-        </div>
-      )}
+                  {pending.map((p: any, i: number) => (
+                    <motion.div key={p.id} initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.05 }}>
+                      <Card className="border-2 border-destructive/30 bg-destructive/5 shadow-lg">
+                        <CardContent className="p-4 space-y-3">
+                          <div className="flex items-start gap-3">
+                            {p.request_photo_url ? (
+                              <img src={p.request_photo_url} alt={p.display_name} className="w-16 h-16 rounded-full object-cover border-2 border-destructive/40 shrink-0" />
+                            ) : (
+                              <div className="w-16 h-16 rounded-full bg-destructive/20 flex items-center justify-center text-xl font-bold text-destructive shrink-0">
+                                {(p.display_name ?? p.email ?? '?').charAt(0).toUpperCase()}
+                              </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <p className="font-bold truncate text-foreground">{p.display_name ?? p.email}</p>
+                              <p className="text-xs text-muted-foreground truncate">{p.email}</p>
+                              <Badge variant="destructive" className="mt-1.5 text-[10px]">Aguardando aprovação</Badge>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button onClick={() => approveRequest(p)} className="flex-1 h-10 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white border-0">
+                              <Check className="h-4 w-4 mr-1.5" /> Aprovar
+                            </Button>
+                            <Button onClick={() => rejectRequest(p)} variant="outline" className="flex-1 h-10 rounded-xl border-destructive/40 text-destructive hover:bg-destructive/10">
+                              <X className="h-4 w-4 mr-1.5" /> Recusar
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Approved users */}
+            <div className="space-y-3">
+              {approved.map((p: any, i: number) => {
+                const role = p.role;
+                const isSelf = p.id === currentUser?.id;
+                return (
+                  <motion.div key={p.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}>
+                    <Card className="glass-card border-0 hover:shadow-rose transition-shadow duration-300">
+                      <CardContent className="p-3 sm:p-4">
+                        <div className="flex items-center gap-3">
+                          {p.avatar_url ? (
+                            <img src={p.avatar_url} alt={p.display_name} className="w-10 h-10 rounded-full object-cover shrink-0" />
+                          ) : (
+                            <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-sm font-bold text-primary shrink-0">
+                              {(p.display_name ?? p.email ?? '?').charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold truncate text-foreground text-sm sm:text-base">{p.display_name ?? p.email}</p>
+                            <p className="text-xs text-muted-foreground truncate">{p.email}</p>
+                          </div>
+                          <Badge variant={p.is_active ? 'default' : 'secondary'} className="text-[10px] shrink-0">
+                            {p.is_active ? 'Ativa' : 'Inativa'}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-2 mt-3 flex-wrap">
+                          <Select value={role} onValueChange={v => changeRole(p, v)}>
+                            <SelectTrigger className="flex-1 min-w-[110px] rounded-xl bg-muted/30 border-border/40 text-xs h-8">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="admin"><div className="flex items-center gap-1"><Shield className="h-3 w-3" /> Admin</div></SelectItem>
+                              <SelectItem value="ministra">Ministra</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <div className="flex gap-1 ml-auto">
+                            <Button variant="ghost" size="icon" className="rounded-xl h-8 w-8 hover:bg-primary/10" title="Alterar senha" onClick={() => { setPasswordDialog(p); setNewPassword(''); }}>
+                              <KeyRound className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="rounded-xl h-8 w-8 hover:bg-primary/10" onClick={() => toggleActive(p)}>
+                              {p.is_active ? <UserX className="h-3.5 w-3.5" /> : <UserCheck className="h-3.5 w-3.5" />}
+                            </Button>
+                            {!isSelf && (
+                              <Button variant="ghost" size="icon" className="rounded-xl h-8 w-8 hover:bg-destructive/10 hover:text-destructive" onClick={() => deleteUser(p)}>
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </>
+        );
+      })()}
 
       <CreateUserDialog open={dialogOpen} onOpenChange={setDialogOpen} onCreated={() => {
         queryClient.invalidateQueries({ queryKey: ['profiles-with-roles'] });
@@ -282,18 +378,22 @@ export default function UserManagement() {
       }} />
 
       {/* Change Password Dialog */}
-      <Dialog open={!!passwordDialog} onOpenChange={(open) => {
-        if (!open) setPasswordDialog(null);
-      }}>
-        <DialogContent className="rounded-2xl border-0 glass-card" onInteractOutside={(e) => {
-          e.preventDefault();
-        }}>
+      <Dialog open={!!passwordDialog} onOpenChange={(open) => !open && !changingPassword && setPasswordDialog(null)}>
+        <DialogContent
+          className="rounded-2xl border-0 glass-card"
+          onEscapeKeyDown={(e) => e.preventDefault()}
+          onInteractOutside={(e) => e.preventDefault()}
+          onPointerDownOutside={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle className="text-lg font-bold flex items-center gap-2">
               <KeyRound className="h-5 w-5 text-primary" /> Alterar Senha
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 mt-2">
+          <form
+            onSubmit={(e) => { e.preventDefault(); handleChangePassword(); }}
+            className="space-y-4 mt-2"
+          >
             <p className="text-sm text-muted-foreground">
               Alterando senha de <strong>{passwordDialog?.display_name ?? passwordDialog?.email}</strong>
             </p>
@@ -304,14 +404,19 @@ export default function UserManagement() {
                 value={newPassword}
                 onChange={e => setNewPassword(e.target.value)}
                 placeholder="Mínimo 6 caracteres"
+                autoComplete="new-password"
                 className="rounded-xl bg-muted/30 border-border/40"
-                autoFocus
               />
             </div>
-            <Button onClick={handleChangePassword} disabled={changingPassword} className="w-full h-11 rounded-xl gradient-rose text-white font-semibold border-0 shadow-rose hover:opacity-90">
-              {changingPassword ? 'Alterando...' : 'Confirmar 💖'}
-            </Button>
-          </div>
+            <div className="flex gap-2">
+              <Button type="button" variant="outline" onClick={() => setPasswordDialog(null)} disabled={changingPassword} className="flex-1 h-11 rounded-xl">
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={changingPassword} className="flex-1 h-11 rounded-xl gradient-rose text-white font-semibold border-0 shadow-rose hover:opacity-90">
+                {changingPassword ? 'Alterando...' : 'Confirmar 💖'}
+              </Button>
+            </div>
+          </form>
         </DialogContent>
       </Dialog>
     </div>

@@ -13,6 +13,13 @@ Deno.serve(async (req) => {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const ANON = Deno.env.get("SUPABASE_ANON_KEY") ?? Deno.env.get("SUPABASE_PUBLISHABLE_KEY")!;
+    const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
+
+    const body = await req.json();
+    const { action } = body;
+
+    // ---- PUBLIC ACTION: reject_request_self (no auth needed, used right after pending signup if user cancels) ----
+    // No public actions for now — all admin actions below
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
@@ -32,7 +39,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
     const { data: roleRow } = await admin
       .from("user_roles").select("role").eq("user_id", userData.user.id).eq("role", "admin").maybeSingle();
     if (!roleRow) {
@@ -41,16 +47,11 @@ Deno.serve(async (req) => {
       });
     }
 
-    const body = await req.json();
-    const { action } = body;
-
     if (action === "delete") {
-      // body.user_id may be profiles.id; resolve to auth user_id
       const { data: prof } = await admin
         .from("profiles").select("user_id").eq("id", body.user_id).maybeSingle();
       const targetId = prof?.user_id ?? body.user_id;
 
-      // Clean up app data first (role + profile), then delete auth user
       await admin.from("user_roles").delete().eq("user_id", targetId);
       await admin.from("profiles").delete().eq("user_id", targetId);
 
@@ -62,13 +63,57 @@ Deno.serve(async (req) => {
     }
 
     if (action === "change_password") {
-      // body.user_id here is the profiles.id; fetch the actual auth user_id
       const { data: prof, error: pErr } = await admin
         .from("profiles").select("user_id").eq("id", body.user_id).maybeSingle();
       if (pErr) throw pErr;
       const targetId = prof?.user_id ?? body.user_id;
       const { error } = await admin.auth.admin.updateUserById(targetId, { password: body.new_password });
       if (error) throw error;
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (action === "approve_request") {
+      // Approves a pending profile: mark approved+active, give 'ministra' role,
+      // and create a member entry with the request photo.
+      const { data: prof, error: pErr } = await admin
+        .from("profiles").select("*").eq("id", body.profile_id).maybeSingle();
+      if (pErr) throw pErr;
+      if (!prof) throw new Error("Solicitação não encontrada");
+
+      await admin.from("profiles").update({
+        status: 'approved',
+        is_active: true,
+        avatar_url: prof.request_photo_url ?? prof.avatar_url,
+      }).eq("id", prof.id);
+
+      await admin.from("user_roles").upsert({ user_id: prof.user_id, role: 'ministra' });
+
+      // Create member if not exists with same name
+      const { data: existingMember } = await admin
+        .from("members").select("id").eq("name", prof.display_name).maybeSingle();
+      if (!existingMember) {
+        await admin.from("members").insert({
+          name: prof.display_name ?? prof.email,
+          photo_url: prof.request_photo_url,
+          status: 'active',
+        });
+      }
+
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (action === "reject_request") {
+      const { data: prof } = await admin
+        .from("profiles").select("user_id").eq("id", body.profile_id).maybeSingle();
+      if (prof?.user_id) {
+        await admin.from("user_roles").delete().eq("user_id", prof.user_id);
+        await admin.from("profiles").delete().eq("user_id", prof.user_id);
+        await admin.auth.admin.deleteUser(prof.user_id).catch(() => {});
+      }
       return new Response(JSON.stringify({ success: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
