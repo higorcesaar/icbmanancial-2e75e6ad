@@ -37,13 +37,23 @@ export default defineConfig(({ mode }) => ({
         skipWaiting: true,
         navigateFallback: "/index.html",
         navigateFallbackDenylist: [/^\/~oauth/, /^\/api/, /^\/auth/],
+        // Always go to network for the HTML shell so new builds appear immediately
         runtimeCaching: [
           {
+            urlPattern: ({ request }) => request.mode === "navigate",
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "html-shell",
+              networkTimeoutSeconds: 3,
+              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 },
+            },
+          },
+          {
             urlPattern: ({ request }) => request.destination === "image",
-            handler: "CacheFirst",
+            handler: "StaleWhileRevalidate",
             options: {
               cacheName: "images",
-              expiration: { maxEntries: 80, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              expiration: { maxEntries: 80, maxAgeSeconds: 60 * 60 * 24 * 7 },
             },
           },
           {

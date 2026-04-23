@@ -77,7 +77,7 @@ export default function UserManagement() {
       
       const merged = (pData || []).map(p => ({
         ...p,
-        role: rolesMap.get(p.id) || 'ministra'
+        role: rolesMap.get(p.user_id) || 'ministra'
       }));
 
       console.log('Usuários carregados com sucesso:', merged.length);
@@ -99,24 +99,28 @@ export default function UserManagement() {
     toast.success(profile.is_active ? 'Conta desativada' : 'Conta ativada');
   };
 
-  const changeRole = async (userId: string, newRole: string) => {
+  const changeRole = async (profile: any, newRole: string) => {
+    if (profile.role === newRole) return;
     try {
-      await supabase
+      // profile.id is profiles.id; we need the auth user_id
+      const targetUserId = profile.user_id ?? profile.id;
+
+      const { error: delErr } = await supabase
         .from('user_roles')
         .delete()
-        .eq('user_id', userId);
-      
-      const { error } = await supabase
+        .eq('user_id', targetUserId);
+      if (delErr) throw delErr;
+
+      const { error: insErr } = await supabase
         .from('user_roles')
-        .insert({ user_id: userId, role: newRole as any });
-      
-      if (error) throw error;
-      
-      queryClient.invalidateQueries({ queryKey: ['profiles-with-roles'] });
+        .insert({ user_id: targetUserId, role: newRole as any });
+      if (insErr) throw insErr;
+
+      await queryClient.invalidateQueries({ queryKey: ['profiles-with-roles'] });
       toast.success(`Permissão ${newRole === 'admin' ? 'de Admin' : 'de Ministra'} atualizada ✨`);
     } catch (err: any) {
       console.error('Erro ao atualizar cargo:', err);
-      toast.error('Erro ao salvar permissão no banco');
+      toast.error('Erro ao salvar permissão: ' + (err.message ?? 'desconhecido'));
     }
   };
 
@@ -245,7 +249,7 @@ export default function UserManagement() {
                     </Badge>
                   </div>
                   <div className="flex items-center gap-2 mt-3 flex-wrap">
-                    <Select value={role} onValueChange={v => changeRole(p.id, v)}>
+                    <Select value={role} onValueChange={v => changeRole(p, v)}>
                       <SelectTrigger className="flex-1 min-w-[110px] rounded-xl bg-muted/30 border-border/40 text-xs h-8">
                         <SelectValue />
                       </SelectTrigger>
@@ -282,14 +286,22 @@ export default function UserManagement() {
       }} />
 
       {/* Change Password Dialog */}
-      <Dialog open={!!passwordDialog} onOpenChange={(open) => !open && setPasswordDialog(null)}>
-        <DialogContent className="rounded-2xl border-0 glass-card">
+      <Dialog open={!!passwordDialog} onOpenChange={(open) => !open && !changingPassword && setPasswordDialog(null)}>
+        <DialogContent
+          className="rounded-2xl border-0 glass-card"
+          onEscapeKeyDown={(e) => e.preventDefault()}
+          onInteractOutside={(e) => e.preventDefault()}
+          onPointerDownOutside={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle className="text-lg font-bold flex items-center gap-2">
               <KeyRound className="h-5 w-5 text-primary" /> Alterar Senha
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 mt-2">
+          <form
+            onSubmit={(e) => { e.preventDefault(); handleChangePassword(); }}
+            className="space-y-4 mt-2"
+          >
             <p className="text-sm text-muted-foreground">
               Alterando senha de <strong>{passwordDialog?.display_name ?? passwordDialog?.email}</strong>
             </p>
@@ -300,13 +312,19 @@ export default function UserManagement() {
                 value={newPassword}
                 onChange={e => setNewPassword(e.target.value)}
                 placeholder="Mínimo 6 caracteres"
+                autoComplete="new-password"
                 className="rounded-xl bg-muted/30 border-border/40"
               />
             </div>
-            <Button onClick={handleChangePassword} disabled={changingPassword} className="w-full h-11 rounded-xl gradient-rose text-white font-semibold border-0 shadow-rose hover:opacity-90">
-              {changingPassword ? 'Alterando...' : 'Confirmar 💖'}
-            </Button>
-          </div>
+            <div className="flex gap-2">
+              <Button type="button" variant="outline" onClick={() => setPasswordDialog(null)} disabled={changingPassword} className="flex-1 h-11 rounded-xl">
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={changingPassword} className="flex-1 h-11 rounded-xl gradient-rose text-white font-semibold border-0 shadow-rose hover:opacity-90">
+                {changingPassword ? 'Alterando...' : 'Confirmar 💖'}
+              </Button>
+            </div>
+          </form>
         </DialogContent>
       </Dialog>
     </div>
