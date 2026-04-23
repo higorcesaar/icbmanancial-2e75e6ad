@@ -238,8 +238,16 @@ export default function Dashboard() {
             <CardHeader className="pb-4">
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <div>
-                  <CardTitle className="text-lg sm:text-xl text-foreground">
-                    {selectedDate ? format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR }) : 'Selecione uma data'}
+<CardTitle className="text-lg sm:text-xl text-foreground flex items-center gap-2 flex-wrap">
+                    <span>{selectedDate ? format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR }) : 'Selecione uma data'}</span>
+                    {selectedSchedule && (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20">
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
+                        <span className="text-xs font-semibold text-primary capitalize tracking-wide">
+                          {selectedSchedule.type}
+                        </span>
+                      </span>
+                    )}
                   </CardTitle>
                   {selectedDate && (
                     <p className="text-xs text-muted-foreground mt-1">
