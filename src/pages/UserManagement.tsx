@@ -166,6 +166,39 @@ export default function UserManagement() {
     }
   };
 
+  const approveRequest = async (profile: any) => {
+    try {
+      await ensureSession();
+      const res = await supabase.functions.invoke('create-user', {
+        body: { action: 'approve_request', profile_id: profile.id },
+      });
+      if (res.error) throw new Error(res.error.message);
+      if (res.data?.error) throw new Error(res.data.error);
+      await queryClient.invalidateQueries({ queryKey: ['profiles-with-roles'] });
+      await queryClient.invalidateQueries({ queryKey: ['pending-requests-count'] });
+      toast.success(`${profile.display_name ?? profile.email} foi aprovada e adicionada às Ministras 💖`);
+    } catch (err: any) {
+      toast.error(err.message ?? 'Erro ao aprovar');
+    }
+  };
+
+  const rejectRequest = async (profile: any) => {
+    if (!confirm(`Recusar a solicitação de ${profile.display_name ?? profile.email}?`)) return;
+    try {
+      await ensureSession();
+      const res = await supabase.functions.invoke('create-user', {
+        body: { action: 'reject_request', profile_id: profile.id },
+      });
+      if (res.error) throw new Error(res.error.message);
+      if (res.data?.error) throw new Error(res.data.error);
+      await queryClient.invalidateQueries({ queryKey: ['profiles-with-roles'] });
+      await queryClient.invalidateQueries({ queryKey: ['pending-requests-count'] });
+      toast.success('Solicitação recusada');
+    } catch (err: any) {
+      toast.error(err.message ?? 'Erro ao recusar');
+    }
+  };
+
   // Non-admin: show only their own login info
   if (!isAdmin) {
     return (
