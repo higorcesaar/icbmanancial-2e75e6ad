@@ -24,22 +24,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchRole = async (userId: string) => {
     try {
-      console.log('Buscando permissões para:', userId);
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', userId)
         .maybeSingle();
-      
-      if (error) {
-        console.error('Erro ao buscar cargo:', error);
-      }
-      
-      const newRole = data?.role ?? 'ministra';
-      console.log('Cargo identificado:', newRole);
-      setRole(newRole);
-    } catch (err) {
-      console.error('Falha crítica na detecção de cargo:', err);
+      setRole((data?.role as AppRole) ?? 'ministra');
+    } catch {
       setRole('ministra');
     }
   };
@@ -49,10 +40,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       async (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-        
         if (session?.user) {
-          console.log('Sessão atualizada para:', session.user.email);
-          // Pequeno delay para garantir que os triggers do banco tenham terminado
           fetchRole(session.user.id);
         } else {
           setRole(null);
@@ -61,30 +49,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     );
 
-    // Initial session load
     const initSession = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         setSession(session);
         setUser(session?.user ?? null);
-        if (session?.user) {
-          await fetchRole(session.user.id);
-        }
-      } catch (err) {
-        console.error('Erro ao inicializar sessão:', err);
+        if (session?.user) await fetchRole(session.user.id);
       } finally {
         setLoading(false);
       }
     };
 
     initSession();
-
     return () => subscription.unsubscribe();
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
+
+    // Check if profile is pending approval — if so, sign out and block
+    if (data.user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('status, is_active')
+        .eq('user_id', data.user.id)
+        .maybeSingle();
+
+      if (profile && (profile.status === 'pending' || !profile.is_active)) {
+        await supabase.auth.signOut();
+        throw new Error(
+          profile.status === 'pending'
+            ? 'Sua solicitação ainda está aguardando aprovação da líder.'
+            : 'Sua conta está inativa. Contate a líder.'
+        );
+      }
+    }
   };
 
   const signOut = async () => {

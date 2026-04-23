@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Shirt, RotateCw, Pause, Play } from 'lucide-react';
 
@@ -11,24 +11,22 @@ interface OutfitViewerProps {
 }
 
 /**
- * 360° outfit viewer — flips between front and back photos with smooth 3D rotation.
- * No heavy 3D libraries: pure CSS transforms + Framer Motion.
+ * 3D flip-card viewer — front/back photos rendered as faces of a real 3D card
+ * that rotates around the Y axis with depth and perspective.
  */
 export function OutfitViewer({ frontUrl, backUrl, fallbackUrl, name }: OutfitViewerProps) {
   const front = frontUrl ?? fallbackUrl ?? null;
   const back = backUrl ?? fallbackUrl ?? null;
   const hasBoth = !!front && !!back && front !== back;
 
-  const [showingBack, setShowingBack] = useState(false);
+  const [rotation, setRotation] = useState(0);
   const [autoRotate, setAutoRotate] = useState(hasBoth);
 
   useEffect(() => {
     if (!autoRotate || !hasBoth) return;
-    const id = setInterval(() => setShowingBack(s => !s), 3000);
+    const id = setInterval(() => setRotation(r => r + 180), 3500);
     return () => clearInterval(id);
   }, [autoRotate, hasBoth]);
-
-  const currentUrl = showingBack ? back : front;
 
   if (!front && !back) {
     return (
@@ -38,26 +36,69 @@ export function OutfitViewer({ frontUrl, backUrl, fallbackUrl, name }: OutfitVie
     );
   }
 
+  const showingBack = ((rotation % 360) + 360) % 360 >= 90 && ((rotation % 360) + 360) % 360 < 270;
+
   return (
     <div className="space-y-4">
-      <div className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden bg-muted/30 [perspective:1200px]">
-        <AnimatePresence mode="wait">
-          <motion.img
-            key={showingBack ? 'back' : 'front'}
-            src={currentUrl ?? undefined}
-            alt={`${name ?? 'Fardamento'} - ${showingBack ? 'costas' : 'frente'}`}
-            initial={{ rotateY: 90, opacity: 0 }}
-            animate={{ rotateY: 0, opacity: 1 }}
-            exit={{ rotateY: -90, opacity: 0 }}
-            transition={{ duration: 0.6, ease: 'easeInOut' }}
-            className="absolute inset-0 w-full h-full object-cover [backface-visibility:hidden]"
-            style={{ transformStyle: 'preserve-3d' }}
-          />
-        </AnimatePresence>
+      <div
+        className="relative aspect-[3/4] w-full rounded-2xl bg-gradient-to-br from-muted/40 via-background to-muted/20"
+        style={{ perspective: '1400px' }}
+      >
+        {/* Soft floor shadow */}
+        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-3/4 h-4 bg-black/30 blur-xl rounded-full" />
 
-        <div className="absolute top-3 left-3 px-3 py-1 rounded-full bg-background/80 backdrop-blur text-xs font-bold uppercase tracking-wider text-foreground border border-border/40">
-          {showingBack ? 'Costas' : 'Frente'}
-        </div>
+        <motion.div
+          className="absolute inset-3 rounded-2xl"
+          style={{ transformStyle: 'preserve-3d' }}
+          animate={{ rotateY: rotation }}
+          transition={{ duration: 1.4, ease: [0.65, 0, 0.35, 1] }}
+          drag={!autoRotate ? 'x' : false}
+          dragConstraints={{ left: 0, right: 0 }}
+          dragElastic={0.2}
+          onDrag={(_, info) => {
+            if (!autoRotate) setRotation(r => r + info.delta.x * 0.7);
+          }}
+        >
+          {/* FRONT face */}
+          <div
+            className="absolute inset-0 rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10 bg-muted"
+            style={{ backfaceVisibility: 'hidden' }}
+          >
+            <img
+              src={front ?? back ?? undefined}
+              alt={`${name ?? 'Fardamento'} - frente`}
+              className="w-full h-full object-cover"
+              draggable={false}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-white/5 pointer-events-none" />
+            <div className="absolute top-3 left-3 px-3 py-1 rounded-full bg-background/80 backdrop-blur text-xs font-bold uppercase tracking-wider text-foreground border border-border/40">
+              Frente
+            </div>
+          </div>
+
+          {/* BACK face */}
+          <div
+            className="absolute inset-0 rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10 bg-muted"
+            style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
+          >
+            <img
+              src={back ?? front ?? undefined}
+              alt={`${name ?? 'Fardamento'} - costas`}
+              className="w-full h-full object-cover"
+              draggable={false}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-white/5 pointer-events-none" />
+            <div className="absolute top-3 left-3 px-3 py-1 rounded-full bg-background/80 backdrop-blur text-xs font-bold uppercase tracking-wider text-foreground border border-border/40">
+              Costas
+            </div>
+          </div>
+        </motion.div>
+
+        {hasBoth && !autoRotate && (
+          <p className="absolute bottom-3 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-widest font-bold text-muted-foreground/60 pointer-events-none">
+            ← Arraste para girar →
+          </p>
+        )}
       </div>
 
       {hasBoth && (
@@ -66,7 +107,7 @@ export function OutfitViewer({ frontUrl, backUrl, fallbackUrl, name }: OutfitVie
             variant={!showingBack ? 'default' : 'outline'}
             size="sm"
             className="rounded-xl"
-            onClick={() => { setShowingBack(false); setAutoRotate(false); }}
+            onClick={() => { setRotation(0); setAutoRotate(false); }}
           >
             Frente
           </Button>
@@ -83,7 +124,7 @@ export function OutfitViewer({ frontUrl, backUrl, fallbackUrl, name }: OutfitVie
             variant={showingBack ? 'default' : 'outline'}
             size="sm"
             className="rounded-xl"
-            onClick={() => { setShowingBack(true); setAutoRotate(false); }}
+            onClick={() => { setRotation(180); setAutoRotate(false); }}
           >
             Costas
           </Button>
@@ -93,7 +134,7 @@ export function OutfitViewer({ frontUrl, backUrl, fallbackUrl, name }: OutfitVie
       {!hasBoth && (front || back) && (
         <p className="text-xs text-center text-muted-foreground flex items-center justify-center gap-1.5">
           <RotateCw className="h-3 w-3" />
-          Adicione foto de {front ? 'costas' : 'frente'} para visualização 360°
+          Adicione foto de {front ? 'costas' : 'frente'} para visualização 3D completa
         </p>
       )}
     </div>
