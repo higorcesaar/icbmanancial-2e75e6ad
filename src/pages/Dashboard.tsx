@@ -283,11 +283,6 @@ export default function Dashboard() {
                     exit={{ opacity: 0, y: -10 }}
                     className="space-y-4"
                   >
-                    <div className="flex items-center gap-3 p-3 rounded-xl bg-primary/8">
-                      {selectedSchedule.type === 'culto' ? <Church className="h-5 w-5 text-primary" /> : <Music className="h-5 w-5 text-accent" />}
-                      <span className="capitalize font-bold text-foreground">{selectedSchedule.type}</span>
-                    </div>
-
                     {selectedSchedule.schedule_outfits?.length > 0 && (
                       <div className="space-y-2.5">
                         <p className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground flex items-center gap-2">
@@ -309,11 +304,14 @@ export default function Dashboard() {
                     )}
 
                     {selectedSchedule.hair_style && (
-                      <div className="flex items-center gap-3 p-4 rounded-xl bg-secondary/50">
-                        <Scissors className="h-5 w-5 text-accent/70" />
-                        <div>
-                          <p className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">Cabelo</p>
-                          <p className="font-semibold text-foreground">{selectedSchedule.hair_style}</p>
+                      <div className="space-y-2.5">
+                        <p className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground flex items-center gap-2">
+                          <Scissors className="h-3.5 w-3.5" /> Cabelo
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          <span className="bg-primary/12 text-primary text-sm font-semibold px-3.5 py-1.5 rounded-full">
+                            {selectedSchedule.hair_style}
+                          </span>
                         </div>
                       </div>
                     )}
@@ -323,12 +321,29 @@ export default function Dashboard() {
                         <p className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground flex items-center gap-2">
                           <Users className="h-3.5 w-3.5" /> Ministras
                         </p>
-                        <div className="flex flex-wrap gap-2">
-                          {selectedSchedule.schedule_members.map((sm: any) => (
-                            <span key={sm.id} className="bg-primary/12 text-primary text-sm font-semibold px-3.5 py-1.5 rounded-full">
-                              {sm.members?.name}
-                            </span>
-                          ))}
+                        <div className="flex flex-wrap gap-3">
+                          {selectedSchedule.schedule_members.map((sm: any) => {
+                            const member = sm.members;
+                            const initial = (member?.name ?? '?').charAt(0).toUpperCase();
+                            return (
+                              <div key={sm.id} className="flex flex-col items-center gap-1.5 w-20">
+                                {member?.photo_url ? (
+                                  <img
+                                    src={member.photo_url}
+                                    alt={member.name}
+                                    className="w-16 h-16 rounded-full object-cover ring-2 ring-primary/20 shadow-sm"
+                                  />
+                                ) : (
+                                  <div className="w-16 h-16 rounded-full gradient-rose flex items-center justify-center text-white font-bold text-lg shadow-sm">
+                                    {initial}
+                                  </div>
+                                )}
+                                <span className="text-[11px] font-semibold text-foreground text-center leading-tight line-clamp-2">
+                                  {member?.name}
+                                </span>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     )}
@@ -340,7 +355,7 @@ export default function Dashboard() {
                         </p>
                         <div className="flex flex-wrap gap-2">
                           {selectedSchedule.schedule_accessories.map((sa: any) => (
-                            <span key={sa.id} className="bg-accent/15 text-accent-foreground text-sm font-semibold px-3.5 py-1.5 rounded-full">
+                            <span key={sa.id} className="bg-primary/12 text-primary text-sm font-semibold px-3.5 py-1.5 rounded-full">
                               {sa.accessories?.name}
                             </span>
                           ))}
