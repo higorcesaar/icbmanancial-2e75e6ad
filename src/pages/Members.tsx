@@ -49,32 +49,32 @@ export default function Members() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
         {members.map((m: any, i: number) => (
           <motion.div key={m.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}>
-            <Card className="glass-card border-0 group hover:shadow-rose transition-all duration-300">
-              <CardContent className="p-5 flex items-center gap-4">
+            <Card className="glass-card border-0 group hover:shadow-rose transition-all duration-300 relative">
+              <CardContent className="p-4 flex flex-col items-center text-center gap-3">
                 {m.photo_url ? (
                   <img
                     src={m.photo_url}
                     alt={m.name}
-                    className="w-14 h-14 rounded-2xl object-cover shadow-rose shrink-0 ring-2 ring-primary/20"
+                    className="w-24 h-24 rounded-full object-cover shadow-rose ring-2 ring-primary/20"
                   />
                 ) : (
-                  <div className="w-14 h-14 rounded-2xl gradient-rose flex items-center justify-center text-white font-bold text-lg shadow-rose shrink-0">
+                  <div className="w-24 h-24 rounded-full gradient-rose flex items-center justify-center text-white font-bold text-2xl shadow-rose">
                     {m.name.charAt(0)}
                   </div>
                 )}
-                <div className="flex-1 min-w-0">
-                  <p className="font-bold text-foreground truncate">{m.name}</p>
-                  <Badge className={`text-[10px] mt-1 ${m.status === 'active' ? 'bg-primary/15 text-primary border-0' : 'bg-muted text-muted-foreground border-0'}`}>
+                <div className="w-full min-w-0 space-y-1.5">
+                  <p className="font-bold text-foreground text-sm leading-tight line-clamp-2">{m.name}</p>
+                  <Badge className={`text-[10px] ${m.status === 'active' ? 'bg-primary/15 text-primary border-0' : 'bg-muted text-muted-foreground border-0'}`}>
                     {m.status === 'active' ? '● Ativa' : '○ Inativa'}
                   </Badge>
                 </div>
                 {isAdmin && (
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button variant="ghost" size="icon" className="rounded-xl hover:bg-primary/10" onClick={() => { setEditing(m); setDialogOpen(true); }}><Pencil className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" className="rounded-xl hover:bg-destructive/10 hover:text-destructive" onClick={() => deleteMutation.mutate(m.id)}><Trash2 className="h-4 w-4" /></Button>
+                  <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button variant="ghost" size="icon" className="rounded-xl h-8 w-8 bg-background/80 backdrop-blur hover:bg-primary/10" onClick={() => { setEditing(m); setDialogOpen(true); }}><Pencil className="h-3.5 w-3.5" /></Button>
+                    <Button variant="ghost" size="icon" className="rounded-xl h-8 w-8 bg-background/80 backdrop-blur hover:bg-destructive/10 hover:text-destructive" onClick={() => deleteMutation.mutate(m.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
                   </div>
                 )}
               </CardContent>
