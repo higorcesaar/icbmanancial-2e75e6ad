@@ -8,10 +8,9 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Shield, UserCheck, UserX, Trash2, KeyRound } from 'lucide-react';
+import { Plus, Shield, UserCheck, UserX, Trash2, KeyRound, BellRing, Check, X } from 'lucide-react';
 import { toast } from 'sonner';
-import { Navigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const translateError = (error: string) => {
   if (error.includes('Password is known to be weak')) {
