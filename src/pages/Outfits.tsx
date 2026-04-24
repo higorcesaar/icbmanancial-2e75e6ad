@@ -116,6 +116,7 @@ export default function Outfits() {
         open={!!avatarOutfit}
         onClose={() => setAvatarOutfit(null)}
         title={avatarOutfit?.name}
+        videoUrl={avatarOutfit?.video_url}
       />
 
       <Dialog open={!!viewing} onOpenChange={(o) => !o && setViewing(null)}>
