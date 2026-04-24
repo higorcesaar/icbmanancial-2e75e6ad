@@ -384,7 +384,6 @@ export default function UserManagement() {
           onEscapeKeyDown={(e) => e.preventDefault()}
           onInteractOutside={(e) => e.preventDefault()}
           onPointerDownOutside={(e) => e.preventDefault()}
-          onKeyDown={(e) => e.stopPropagation()}
         >
           <DialogHeader>
             <DialogTitle className="text-lg font-bold flex items-center gap-2">

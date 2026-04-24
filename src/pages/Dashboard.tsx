@@ -5,11 +5,10 @@ import { useRealtimeTable } from '@/hooks/use-realtime-table';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { ChevronLeft, ChevronRight, Users, Plus, CalendarDays, Shirt, Sparkles, Scissors, BarChart3, X, Trash2, Star } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Users, Plus, CalendarDays, Shirt, Sparkles, Scissors, BarChart3, X, Trash2 } from 'lucide-react';
 import { OutfitViewer } from '@/components/OutfitViewer';
 
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths, isSameDay, isToday } from 'date-fns';
@@ -239,14 +238,8 @@ export default function Dashboard() {
             <CardHeader className="pb-4">
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <div>
-<CardTitle className="text-lg sm:text-xl text-foreground flex items-center gap-2 flex-wrap">
-                    <span>{selectedDate ? format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR }) : 'Selecione uma data'}</span>
-                    {selectedSchedule && (
-                      <Badge className="bg-rose-100 text-rose-700 border-rose-200 hover:bg-rose-200 gap-1.5">
-                        <Star className="h-3 w-3 fill-rose-400" />
-                        <span className="capitalize">{selectedSchedule.type}</span>
-                      </Badge>
-                    )}
+                  <CardTitle className="text-lg sm:text-xl text-foreground">
+                    {selectedDate ? format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR }) : 'Selecione uma data'}
                   </CardTitle>
                   {selectedDate && (
                     <p className="text-xs text-muted-foreground mt-1">
@@ -649,7 +642,7 @@ function ScheduleEditDialog({ open, onOpenChange, date, schedule, members, outfi
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl border-0 glass-card">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">
-            {schedule ? 'Editar Escala' : 'Nova Escala'} — {format(date, "d 'de' MMMM", { locale: ptBR })} ({type.charAt(0).toUpperCase() + type.slice(1)})
+            {schedule ? 'Editar Escala' : 'Nova Escala'} — {format(date, "d 'de' MMMM", { locale: ptBR })}
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-5 mt-2">
