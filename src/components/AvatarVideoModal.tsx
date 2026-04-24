@@ -1,19 +1,18 @@
 import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X } from 'lucide-react';
-
-const AVATAR_VIDEO_URL =
-  'https://zlefskputrqptsatndtc.supabase.co/storage/v1/object/public/fardamentos/Giro%20360%20do%20Avatar_720p.mp4';
+import { X, Sparkles } from 'lucide-react';
 
 interface AvatarVideoModalProps {
   open: boolean;
   onClose: () => void;
   title?: string;
+  videoUrl?: string | null;
 }
 
-export function AvatarVideoModal({ open, onClose, title }: AvatarVideoModalProps) {
+export function AvatarVideoModal({ open, onClose, title, videoUrl }: AvatarVideoModalProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const hasVideo = !!videoUrl;
 
   // ESC + lock body scroll + back-button support
   useEffect(() => {
@@ -74,18 +73,32 @@ export function AvatarVideoModal({ open, onClose, title }: AvatarVideoModalProps
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
             onClick={(e) => e.stopPropagation()}
           >
-            <video
-              ref={videoRef}
-              src={AVATAR_VIDEO_URL}
-              autoPlay
-              loop
-              muted
-              playsInline
-              controls={false}
-              disablePictureInPicture
-              controlsList="nodownload nofullscreen noremoteplayback"
-              className="w-full h-full object-cover rounded-3xl pointer-events-none select-none"
-            />
+            {hasVideo ? (
+              <video
+                ref={videoRef}
+                src={videoUrl ?? undefined}
+                autoPlay
+                loop
+                muted
+                playsInline
+                controls={false}
+                disablePictureInPicture
+                controlsList="nodownload nofullscreen noremoteplayback"
+                className="w-full h-full object-cover rounded-3xl pointer-events-none select-none"
+              />
+            ) : (
+              <div className="w-full h-full flex flex-col items-center justify-center gap-4 bg-gradient-to-br from-primary/20 via-background to-accent/20 text-center px-6">
+                <div className="h-20 w-20 rounded-full bg-primary/15 flex items-center justify-center ring-1 ring-primary/30">
+                  <Sparkles className="h-9 w-9 text-primary" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-xl font-bold text-foreground">Visualização 3D em breve</h3>
+                  <p className="text-sm text-muted-foreground max-w-xs">
+                    Este fardamento ainda não tem vídeo 360° do avatar cadastrado.
+                  </p>
+                </div>
+              </div>
+            )}
 
             {/* Subtle gradient overlay for title contrast */}
             {title && (

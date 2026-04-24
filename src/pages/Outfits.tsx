@@ -116,6 +116,7 @@ export default function Outfits() {
         open={!!avatarOutfit}
         onClose={() => setAvatarOutfit(null)}
         title={avatarOutfit?.name}
+        videoUrl={avatarOutfit?.video_url}
       />
 
       <Dialog open={!!viewing} onOpenChange={(o) => !o && setViewing(null)}>
@@ -143,6 +144,7 @@ export default function Outfits() {
 function OutfitDialog({ open, onOpenChange, outfit, onSaved }: any) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [videoUrl, setVideoUrl] = useState('');
   const [frontFile, setFrontFile] = useState<File | null>(null);
   const [backFile, setBackFile] = useState<File | null>(null);
   const [frontPreview, setFrontPreview] = useState<string | null>(null);
@@ -153,6 +155,7 @@ function OutfitDialog({ open, onOpenChange, outfit, onSaved }: any) {
     if (open) {
       setName(outfit?.name ?? '');
       setDescription(outfit?.description ?? '');
+      setVideoUrl(outfit?.video_url ?? '');
       setFrontFile(null);
       setBackFile(null);
       setFrontPreview(outfit?.image_front_url ?? outfit?.image_url ?? null);
@@ -192,6 +195,7 @@ function OutfitDialog({ open, onOpenChange, outfit, onSaved }: any) {
       const payload: any = {
         name,
         description: description || null,
+        video_url: videoUrl.trim() || null,
         image_front_url: frontUrl,
         image_back_url: backUrl,
         image_url: frontUrl ?? outfit?.image_url ?? null,
@@ -223,6 +227,20 @@ function OutfitDialog({ open, onOpenChange, outfit, onSaved }: any) {
           <div className="space-y-2">
             <label className="text-xs uppercase tracking-wider font-bold text-muted-foreground">Descrição</label>
             <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Descrição..." className="rounded-xl bg-muted/30 border-border/40" />
+          </div>
+          <div className="space-y-2">
+            <label className="text-xs uppercase tracking-wider font-bold text-muted-foreground flex items-center gap-1.5">
+              <Sparkles className="h-3 w-3" /> Vídeo do Avatar 360° (URL)
+            </label>
+            <Input
+              value={videoUrl}
+              onChange={e => setVideoUrl(e.target.value)}
+              placeholder="https://...mp4"
+              className="rounded-xl bg-muted/30 border-border/40"
+            />
+            <p className="text-[10px] text-muted-foreground/70">
+              Cole o link público do vídeo 360° do avatar com este fardamento. Deixe vazio para mostrar "em breve".
+            </p>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
