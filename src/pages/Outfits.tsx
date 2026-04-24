@@ -144,6 +144,7 @@ export default function Outfits() {
 function OutfitDialog({ open, onOpenChange, outfit, onSaved }: any) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [videoUrl, setVideoUrl] = useState('');
   const [frontFile, setFrontFile] = useState<File | null>(null);
   const [backFile, setBackFile] = useState<File | null>(null);
   const [frontPreview, setFrontPreview] = useState<string | null>(null);
@@ -154,6 +155,7 @@ function OutfitDialog({ open, onOpenChange, outfit, onSaved }: any) {
     if (open) {
       setName(outfit?.name ?? '');
       setDescription(outfit?.description ?? '');
+      setVideoUrl(outfit?.video_url ?? '');
       setFrontFile(null);
       setBackFile(null);
       setFrontPreview(outfit?.image_front_url ?? outfit?.image_url ?? null);
@@ -193,6 +195,7 @@ function OutfitDialog({ open, onOpenChange, outfit, onSaved }: any) {
       const payload: any = {
         name,
         description: description || null,
+        video_url: videoUrl.trim() || null,
         image_front_url: frontUrl,
         image_back_url: backUrl,
         image_url: frontUrl ?? outfit?.image_url ?? null,
