@@ -8,10 +8,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Plus, Pencil, Trash2, Shirt, Eye } from 'lucide-react';
+import { Plus, Pencil, Trash2, Shirt, Eye, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { OutfitViewer } from '@/components/OutfitViewer';
+import { AvatarVideoModal } from '@/components/AvatarVideoModal';
 
 export default function Outfits() {
   const { isAdmin } = useAuth();
@@ -19,6 +20,7 @@ export default function Outfits() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
   const [viewing, setViewing] = useState<any>(null);
+  const [avatarOutfit, setAvatarOutfit] = useState<any>(null);
 
   useRealtimeTable('outfits', [['outfits'], ['outfits-all']]);
 
@@ -75,9 +77,16 @@ export default function Outfits() {
                 <CardContent className="p-5 space-y-2">
                   <h3 className="font-bold text-foreground text-lg">{o.name}</h3>
                   {o.description && <p className="text-sm text-muted-foreground line-clamp-2">{o.description}</p>}
-                  <div className="flex gap-2 pt-2">
-                    <Button variant="outline" size="sm" className="rounded-xl flex-1" onClick={() => setViewing(o)}>
+                  <div className="flex flex-wrap gap-2 pt-2">
+                    <Button variant="outline" size="sm" className="rounded-xl flex-1 min-w-[110px]" onClick={() => setViewing(o)}>
                       <Eye className="h-3.5 w-3.5 mr-1" /> Ver 360°
+                    </Button>
+                    <Button
+                      size="sm"
+                      className="rounded-xl flex-1 min-w-[130px] gradient-rose text-white border-0 shadow-rose hover:opacity-90"
+                      onClick={() => setAvatarOutfit(o)}
+                    >
+                      <Sparkles className="h-3.5 w-3.5 mr-1" /> Ver no Avatar
                     </Button>
                     {isAdmin && (
                       <>
@@ -102,6 +111,12 @@ export default function Outfits() {
         queryClient.invalidateQueries({ queryKey: ['outfits-all'] });
         setDialogOpen(false);
       }} />
+
+      <AvatarVideoModal
+        open={!!avatarOutfit}
+        onClose={() => setAvatarOutfit(null)}
+        title={avatarOutfit?.name}
+      />
 
       <Dialog open={!!viewing} onOpenChange={(o) => !o && setViewing(null)}>
         <DialogContent className="rounded-2xl border-0 glass-card max-w-md">
