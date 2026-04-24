@@ -243,7 +243,7 @@ export default function Dashboard() {
                       {selectedDate ? format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR }) : 'Selecione uma data'}
                     </CardTitle>
                     {selectedSchedule?.type && (
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-pink-100 text-pink-700 px-3 py-1 text-xs font-semibold border border-pink-200/60 shadow-sm">
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary text-primary px-3 py-1 text-xs font-semibold border border-primary/15 shadow-sm capitalize">
                         <CalendarDays className="h-3.5 w-3.5" />
                         {selectedSchedule.type}
                       </span>
