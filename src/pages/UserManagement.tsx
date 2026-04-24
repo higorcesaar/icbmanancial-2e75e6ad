@@ -378,7 +378,7 @@ export default function UserManagement() {
       }} />
 
       {/* Change Password Dialog */}
-      <Dialog open={!!passwordDialog} onOpenChange={(open) => !open && !changingPassword && setPasswordDialog(null)}>
+      <Dialog open={!!passwordDialog} onOpenChange={(open) => !open && !changingPassword && setPasswordDialog(null)} disableBackButtonClose>
         <DialogContent
           className="rounded-2xl border-0 glass-card"
           onEscapeKeyDown={(e) => e.preventDefault()}

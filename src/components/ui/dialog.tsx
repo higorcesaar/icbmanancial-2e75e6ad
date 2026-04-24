@@ -4,13 +4,22 @@ import { X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
-const Dialog = ({ open, onOpenChange, ...props }: React.ComponentProps<typeof DialogPrimitive.Root>) => {
+type DialogProps = React.ComponentProps<typeof DialogPrimitive.Root> & {
+  /**
+   * When true, disables the mobile back-button-to-close integration for this dialog.
+   * Use for sensitive dialogs (e.g. password change) where Android PWA navigation
+   * gestures or soft-keyboard popstate events could close the dialog unexpectedly.
+   */
+  disableBackButtonClose?: boolean;
+};
+
+const Dialog = ({ open, onOpenChange, disableBackButtonClose, ...props }: DialogProps) => {
   // Mobile back-button support: push history state when opened, close on popstate.
   // Tracks whether close was triggered by popstate to avoid double-back navigation.
   const poppedRef = React.useRef(false);
 
   React.useEffect(() => {
-    if (!open) return;
+    if (!open || disableBackButtonClose) return;
 
     poppedRef.current = false;
     window.history.pushState({ __lovableDialog: true }, '');
@@ -29,7 +38,7 @@ const Dialog = ({ open, onOpenChange, ...props }: React.ComponentProps<typeof Di
         window.history.back();
       }
     };
-  }, [open, onOpenChange]);
+  }, [open, onOpenChange, disableBackButtonClose]);
 
   return <DialogPrimitive.Root open={open} onOpenChange={onOpenChange} {...props} />;
 };
