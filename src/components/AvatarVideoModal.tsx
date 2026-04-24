@@ -1,19 +1,18 @@
 import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X } from 'lucide-react';
-
-const AVATAR_VIDEO_URL =
-  'https://zlefskputrqptsatndtc.supabase.co/storage/v1/object/public/fardamentos/Giro%20360%20do%20Avatar_720p.mp4';
+import { X, Sparkles } from 'lucide-react';
 
 interface AvatarVideoModalProps {
   open: boolean;
   onClose: () => void;
   title?: string;
+  videoUrl?: string | null;
 }
 
-export function AvatarVideoModal({ open, onClose, title }: AvatarVideoModalProps) {
+export function AvatarVideoModal({ open, onClose, title, videoUrl }: AvatarVideoModalProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const hasVideo = !!videoUrl;
 
   // ESC + lock body scroll + back-button support
   useEffect(() => {
