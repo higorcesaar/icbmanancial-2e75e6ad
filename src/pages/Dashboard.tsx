@@ -238,9 +238,17 @@ export default function Dashboard() {
             <CardHeader className="pb-4">
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <div>
-                  <CardTitle className="text-lg sm:text-xl text-foreground">
-                    {selectedDate ? format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR }) : 'Selecione uma data'}
-                  </CardTitle>
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <CardTitle className="text-lg sm:text-xl text-foreground">
+                      {selectedDate ? format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR }) : 'Selecione uma data'}
+                    </CardTitle>
+                    {selectedSchedule?.type && (
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-pink-100 text-pink-700 px-3 py-1 text-xs font-semibold border border-pink-200/60 shadow-sm">
+                        <CalendarDays className="h-3.5 w-3.5" />
+                        {selectedSchedule.type}
+                      </span>
+                    )}
+                  </div>
                   {selectedDate && (
                     <p className="text-xs text-muted-foreground mt-1">
                       {selectedSchedule ? 'Escala registrada' : 'Sem escala para este dia'}
