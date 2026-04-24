@@ -228,6 +228,20 @@ function OutfitDialog({ open, onOpenChange, outfit, onSaved }: any) {
             <label className="text-xs uppercase tracking-wider font-bold text-muted-foreground">Descrição</label>
             <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Descrição..." className="rounded-xl bg-muted/30 border-border/40" />
           </div>
+          <div className="space-y-2">
+            <label className="text-xs uppercase tracking-wider font-bold text-muted-foreground flex items-center gap-1.5">
+              <Sparkles className="h-3 w-3" /> Vídeo do Avatar 360° (URL)
+            </label>
+            <Input
+              value={videoUrl}
+              onChange={e => setVideoUrl(e.target.value)}
+              placeholder="https://...mp4"
+              className="rounded-xl bg-muted/30 border-border/40"
+            />
+            <p className="text-[10px] text-muted-foreground/70">
+              Cole o link público do vídeo 360° do avatar com este fardamento. Deixe vazio para mostrar "em breve".
+            </p>
+          </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
