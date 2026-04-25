@@ -481,7 +481,7 @@ function CreateUserDialog({ open, onOpenChange, onCreated }: any) {
               </SelectContent>
             </Select>
           </div>
-          <Button onClick={handleCreate} disabled={saving} className="w-full h-12 rounded-xl gradient-rose text-white font-semibold border-0 shadow-rose hover:opacity-90">
+          <Button onClick={handleCreate} disabled={saving} className="w-full h-12">
             {saving ? 'Criando...' : 'Criar usuário 💖'}
           </Button>
         </div>
