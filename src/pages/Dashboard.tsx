@@ -367,7 +367,7 @@ export default function Dashboard() {
                         </p>
                         <div className="flex flex-wrap gap-2">
                           {selectedSchedule.schedule_accessories.map((sa: any) => (
-                            <span key={sa.id} className="bg-gradient-to-r from-[hsl(340,72%,68%)] to-[hsl(330,80%,58%)] text-white text-sm font-semibold px-3.5 py-1.5 rounded-full border border-white/30 shadow-[0_0_16px_rgba(244,114,182,0.4)]">
+                            <span key={sa.id} className="bg-primary/12 text-primary text-sm font-semibold px-3.5 py-1.5 rounded-full">
                               {sa.accessories?.name}
                             </span>
                           ))}
@@ -811,7 +811,7 @@ function ScheduleEditDialog({ open, onOpenChange, date, schedule, members, outfi
                   onClick={() => toggleAccessory(a.id)}
                   className={`px-3.5 py-1.5 text-sm rounded-full font-medium transition-all ${
                     selectedAccessories.includes(a.id)
-                      ? 'bg-accent text-white shadow-sm'
+                      ? 'bg-gradient-to-r from-[hsl(340,72%,68%)] to-[hsl(330,80%,58%)] text-white border border-white/30 shadow-[0_0_16px_rgba(244,114,182,0.4)]'
                       : 'bg-muted/50 text-foreground/60 hover:bg-muted'
                   }`}
                 >
