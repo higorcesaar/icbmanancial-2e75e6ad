@@ -41,7 +41,12 @@ export default defineConfig(({ mode }) => ({
         clientsClaim: true,
         skipWaiting: true,
         navigateFallback: "/index.html",
-        navigateFallbackDenylist: [/^\/~oauth/, /^\/api/, /^\/auth/],
+        navigateFallbackDenylist: [
+          /^\/~oauth/,
+          /^\/api/,
+          /^\/auth/,
+          /\.[a-z0-9]+$/i, // never serve index.html for asset requests (.png, .json, .webmanifest, etc.)
+        ],
         // Always go to network for the HTML shell so new builds appear immediately
         runtimeCaching: [
           {
