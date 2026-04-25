@@ -277,11 +277,7 @@ export default function Dashboard() {
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     )}
-                    <Button
-                      size="sm"
-                      className="rounded-xl gradient-rose text-white border-0 shadow-rose hover:opacity-90 transition-opacity"
-                      onClick={() => setEditOpen(true)}
-                    >
+                    <Button size="sm" onClick={() => setEditOpen(true)}>
                       <Plus className="h-4 w-4 mr-1" />
                       {selectedSchedule ? 'Editar' : 'Criar'}
                     </Button>
