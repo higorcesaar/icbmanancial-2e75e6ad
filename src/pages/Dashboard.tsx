@@ -221,9 +221,16 @@ export default function Dashboard() {
                         ${!isSelected && !today && !hasSchedule ? 'hover:bg-muted text-foreground/80' : ''}
                       `}
                     >
-                      {day.getDate()}
+                      <span className="leading-none">{day.getDate()}</span>
                       {hasSchedule && (
-                        <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white/90' : 'bg-primary'}`} />
+                        <img
+                          src={danceIcon}
+                          alt="Escala marcada"
+                          width={512}
+                          height={512}
+                          loading="lazy"
+                          className={`w-4 h-4 sm:w-5 sm:h-5 object-contain drop-shadow-sm ${isSelected ? 'brightness-0 invert' : ''}`}
+                        />
                       )}
                     </button>
                   );
