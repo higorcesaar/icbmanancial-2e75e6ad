@@ -174,7 +174,7 @@ export default function Dashboard() {
         </motion.div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         {/* Calendar */}
         <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
           <Card className="glass-card border-0 overflow-hidden">
@@ -424,7 +424,7 @@ export default function Dashboard() {
             <>
               {/* Desktop (≥ lg): inline card */}
               <motion.div
-                className="hidden lg:block lg:col-span-2"
+                className="hidden xl:block xl:col-span-2"
                 initial={{ opacity: 0, x: 10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.3 }}
@@ -440,7 +440,7 @@ export default function Dashboard() {
                 open={!!selectedDate && !editOpen}
                 onOpenChange={(o) => { if (!o) setSelectedDate(null); }}
               >
-                <DialogContent className="lg:hidden max-w-[calc(100vw-2rem)] sm:max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl border-0 glass-card p-5">
+                <DialogContent className="xl:hidden max-w-[calc(100vw-2rem)] sm:max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl border-0 glass-card p-5">
                   <DialogHeader>
                     <DialogTitle className="sr-only">
                       {selectedDate ? format(selectedDate, "d 'de' MMMM", { locale: ptBR }) : 'Detalhes'}
