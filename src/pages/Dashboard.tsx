@@ -367,7 +367,7 @@ export default function Dashboard() {
                         </p>
                         <div className="flex flex-wrap gap-2">
                           {selectedSchedule.schedule_accessories.map((sa: any) => (
-                            <span key={sa.id} className="bg-primary/12 text-primary text-sm font-semibold px-3.5 py-1.5 rounded-full">
+                            <span key={sa.id} className="bg-gradient-to-r from-[hsl(340,72%,68%)] to-[hsl(330,80%,58%)] text-white text-sm font-semibold px-3.5 py-1.5 rounded-full border border-white/30 shadow-[0_0_16px_rgba(244,114,182,0.4)]">
                               {sa.accessories?.name}
                             </span>
                           ))}
