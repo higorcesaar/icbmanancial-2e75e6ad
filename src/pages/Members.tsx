@@ -194,7 +194,7 @@ function MemberDialog({ open, onOpenChange, member, onSaved }: any) {
             <label className="text-xs uppercase tracking-wider font-bold text-muted-foreground">Notas</label>
             <Textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Observações..." className="rounded-xl bg-muted/30 border-border/40" />
           </div>
-          <Button onClick={handleSave} disabled={saving} className="w-full h-12 rounded-xl gradient-rose text-white font-semibold border-0 shadow-rose hover:opacity-90">
+          <Button onClick={handleSave} disabled={saving} className="w-full h-12">
             {saving ? 'Salvando...' : 'Salvar 💖'}
           </Button>
         </div>

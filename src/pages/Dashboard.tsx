@@ -277,11 +277,7 @@ export default function Dashboard() {
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     )}
-                    <Button
-                      size="sm"
-                      className="rounded-xl gradient-rose text-white border-0 shadow-rose hover:opacity-90 transition-opacity"
-                      onClick={() => setEditOpen(true)}
-                    >
+                    <Button size="sm" onClick={() => setEditOpen(true)}>
                       <Plus className="h-4 w-4 mr-1" />
                       {selectedSchedule ? 'Editar' : 'Criar'}
                     </Button>
@@ -734,7 +730,6 @@ function ScheduleEditDialog({ open, onOpenChange, date, schedule, members, outfi
                       size="sm"
                       onClick={handleAddCustomType}
                       disabled={!customTypeInput.trim()}
-                      className="rounded-xl gradient-rose text-white border-0 px-4"
                     >
                       Usar
                     </Button>
@@ -840,7 +835,7 @@ function ScheduleEditDialog({ open, onOpenChange, date, schedule, members, outfi
           <Button
             onClick={handleSave}
             disabled={saving || !type.trim()}
-            className="w-full h-12 rounded-xl gradient-rose text-white font-semibold text-base shadow-rose hover:opacity-90 transition-opacity border-0"
+            className="w-full h-12 text-base"
           >
             {saving ? 'Salvando...' : 'Salvar escala 💖'}
           </Button>

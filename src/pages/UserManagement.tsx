@@ -227,7 +227,7 @@ export default function UserManagement() {
           <h2 className="text-xl sm:text-2xl font-bold text-foreground">Usuários</h2>
           <p className="text-xs sm:text-sm text-muted-foreground mt-1">{profiles.length} cadastro{profiles.length !== 1 ? 's' : ''}</p>
         </div>
-        <Button onClick={() => setDialogOpen(true)} size="sm" className="rounded-xl gradient-rose text-white border-0 shadow-rose hover:opacity-90 shrink-0">
+        <Button onClick={() => setDialogOpen(true)} size="sm" className="shrink-0">
           <Plus className="h-4 w-4 mr-1.5" /> Adicionar
         </Button>
       </div>
@@ -412,7 +412,7 @@ export default function UserManagement() {
               <Button type="button" variant="outline" onClick={() => setPasswordDialog(null)} disabled={changingPassword} className="flex-1 h-11 rounded-xl">
                 Cancelar
               </Button>
-              <Button type="submit" disabled={changingPassword} className="flex-1 h-11 rounded-xl gradient-rose text-white font-semibold border-0 shadow-rose hover:opacity-90">
+              <Button type="submit" disabled={changingPassword} className="flex-1 h-11">
                 {changingPassword ? 'Alterando...' : 'Confirmar 💖'}
               </Button>
             </div>
@@ -481,7 +481,7 @@ function CreateUserDialog({ open, onOpenChange, onCreated }: any) {
               </SelectContent>
             </Select>
           </div>
-          <Button onClick={handleCreate} disabled={saving} className="w-full h-12 rounded-xl gradient-rose text-white font-semibold border-0 shadow-rose hover:opacity-90">
+          <Button onClick={handleCreate} disabled={saving} className="w-full h-12">
             {saving ? 'Criando...' : 'Criar usuário 💖'}
           </Button>
         </div>

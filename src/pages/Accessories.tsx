@@ -145,7 +145,7 @@ function AccessoryDialog({ open, onOpenChange, accessory, onSaved }: any) {
             <label className="text-xs uppercase tracking-wider font-bold text-muted-foreground">Imagem</label>
             <Input type="file" accept="image/*" onChange={e => setImageFile(e.target.files?.[0] ?? null)} className="rounded-xl" />
           </div>
-          <Button onClick={handleSave} disabled={saving} className="w-full h-12 rounded-xl gradient-rose text-white font-semibold border-0 shadow-rose hover:opacity-90">
+          <Button onClick={handleSave} disabled={saving} className="w-full h-12">
             {saving ? 'Salvando...' : 'Salvar 💖'}
           </Button>
         </div>

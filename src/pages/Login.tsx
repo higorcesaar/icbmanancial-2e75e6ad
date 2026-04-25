@@ -218,8 +218,7 @@ export default function Login() {
                     )}
                   </div>
 
-                  <Button type="submit" disabled={loading}
-                    className="w-full h-12 rounded-xl gradient-rose text-white font-bold text-lg shadow-rose hover:opacity-90 active:scale-[0.98] border-0 shadow-lg">
+                  <Button type="submit" disabled={loading} className="w-full h-12 text-lg">
                     {loading ? 'Preparando...' : 'Entrar na Escala 💖'}
                   </Button>
 
@@ -282,8 +281,7 @@ export default function Login() {
                       className="h-11 rounded-xl bg-white/10 border-white/10 focus:bg-white/20 text-white placeholder:text-white/30" placeholder="Mínimo 6 caracteres" />
                   </div>
 
-                  <Button type="submit" disabled={submittingRequest}
-                    className="w-full h-12 rounded-xl gradient-rose text-white font-bold text-lg border-0 shadow-rose hover:opacity-90 active:scale-[0.98]">
+                  <Button type="submit" disabled={submittingRequest} className="w-full h-12 text-lg">
                     {submittingRequest ? 'Enviando...' : 'Enviar Solicitação ✨'}
                   </Button>
                 </motion.form>

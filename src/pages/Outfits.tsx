@@ -245,7 +245,7 @@ function OutfitDialog({ open, onOpenChange, outfit, onSaved }: any) {
             </div>
           </div>
 
-          <Button onClick={handleSave} disabled={saving} className="w-full h-12 rounded-xl gradient-rose text-white font-semibold border-0 shadow-rose hover:opacity-90">
+          <Button onClick={handleSave} disabled={saving} className="w-full h-12">
             {saving ? 'Salvando...' : 'Salvar 💖'}
           </Button>
         </div>
