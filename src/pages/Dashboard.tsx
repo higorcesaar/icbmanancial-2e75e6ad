@@ -240,188 +240,223 @@ export default function Dashboard() {
           </Card>
         </motion.div>
 
-        {/* Selected day details */}
-        <motion.div className="lg:col-span-2" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
-          <Card className="glass-card border-0 h-full">
-            <CardHeader className="pb-4">
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <div>
-                  <div className="flex items-center gap-2.5 flex-wrap">
-                    <CardTitle className="text-lg sm:text-xl text-foreground">
-                      {selectedDate ? format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR }) : 'Selecione uma data'}
-                    </CardTitle>
-                    {selectedSchedule?.type && (
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary text-primary px-3 py-1 text-xs font-semibold border border-primary/15 shadow-sm capitalize">
-                        <CalendarDays className="h-3.5 w-3.5" />
-                        {selectedSchedule.type}
-                      </span>
-                    )}
-                  </div>
-                  {selectedDate && (
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {selectedSchedule ? 'Escala registrada' : 'Sem escala para este dia'}
-                    </p>
+        {/* Selected day details — desktop inline / mobile+tablet floating dialog */}
+        {(() => {
+          const headerNode = (
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div>
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <CardTitle className="text-lg sm:text-xl text-foreground">
+                    {selectedDate ? format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR }) : 'Selecione uma data'}
+                  </CardTitle>
+                  {selectedSchedule?.type && (
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary text-primary px-3 py-1 text-xs font-semibold border border-primary/15 shadow-sm capitalize">
+                      <CalendarDays className="h-3.5 w-3.5" />
+                      {selectedSchedule.type}
+                    </span>
                   )}
                 </div>
-                {isAdmin && selectedDate && (
-                  <div className="flex items-center gap-2">
-                    {selectedSchedule && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="rounded-xl text-destructive hover:bg-destructive/10 hover:text-destructive transition-colors"
-                        onClick={handleDeleteSchedule}
-                        title="Remover escala do dia"
-                        aria-label="Remover escala"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
-                    <Button size="sm" onClick={() => setEditOpen(true)}>
-                      <Plus className="h-4 w-4 mr-1" />
-                      {selectedSchedule ? 'Editar' : 'Criar'}
-                    </Button>
-                  </div>
+                {selectedDate && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {selectedSchedule ? 'Escala registrada' : 'Sem escala para este dia'}
+                  </p>
                 )}
               </div>
-            </CardHeader>
-            <CardContent>
-              <AnimatePresence mode="wait">
-                {selectedSchedule ? (
-                  <motion.div
-                    key="schedule"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="space-y-4"
-                  >
-                    {selectedSchedule.schedule_outfits?.length > 0 && (
-                      <div className="space-y-2.5">
-                        <p className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground flex items-center gap-2">
-                          <Shirt className="h-3.5 w-3.5" /> Fardamentos
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                          {selectedSchedule.schedule_outfits.map((so: any) => (
-                            <button
-                              key={so.id}
-                              onClick={() => setViewingOutfit(so.outfits)}
-                              className="bg-primary/12 text-primary text-sm font-semibold px-3.5 py-1.5 rounded-full hover:bg-primary/25 transition-colors cursor-pointer"
-                              title="Ver fardamento em 360°"
-                            >
-                              {so.outfits?.name}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+              {isAdmin && selectedDate && (
+                <div className="flex items-center gap-2">
+                  {selectedSchedule && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="rounded-xl text-destructive hover:bg-destructive/10 hover:text-destructive transition-colors"
+                      onClick={handleDeleteSchedule}
+                      title="Remover escala do dia"
+                      aria-label="Remover escala"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                  <Button size="sm" onClick={() => setEditOpen(true)}>
+                    <Plus className="h-4 w-4 mr-1" />
+                    {selectedSchedule ? 'Editar' : 'Criar'}
+                  </Button>
+                </div>
+              )}
+            </div>
+          );
 
-                    {selectedSchedule.hair_style && (
-                      <div className="space-y-2.5">
-                        <p className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground flex items-center gap-2">
-                          <Scissors className="h-3.5 w-3.5" /> Cabelo
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                          <span className="bg-primary/12 text-primary text-sm font-semibold px-3.5 py-1.5 rounded-full">
-                            {selectedSchedule.hair_style}
+          const bodyNode = (
+            <AnimatePresence mode="wait">
+              {selectedSchedule ? (
+                <motion.div
+                  key="schedule"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="space-y-4"
+                >
+                  {selectedSchedule.schedule_outfits?.length > 0 && (
+                    <div className="space-y-2.5">
+                      <p className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground flex items-center gap-2">
+                        <Shirt className="h-3.5 w-3.5" /> Fardamentos
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedSchedule.schedule_outfits.map((so: any) => (
+                          <button
+                            key={so.id}
+                            onClick={() => setViewingOutfit(so.outfits)}
+                            className="bg-primary/12 text-primary text-sm font-semibold px-3.5 py-1.5 rounded-full hover:bg-primary/25 transition-colors cursor-pointer"
+                            title="Ver fardamento em 360°"
+                          >
+                            {so.outfits?.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedSchedule.hair_style && (
+                    <div className="space-y-2.5">
+                      <p className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground flex items-center gap-2">
+                        <Scissors className="h-3.5 w-3.5" /> Cabelo
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        <span className="bg-primary/12 text-primary text-sm font-semibold px-3.5 py-1.5 rounded-full">
+                          {selectedSchedule.hair_style}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedSchedule.schedule_members?.length > 0 && (
+                    <div className="space-y-2.5">
+                      <p className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground flex items-center gap-2">
+                        <Users className="h-3.5 w-3.5" /> Ministras
+                      </p>
+                      <div className="flex flex-wrap gap-3">
+                        {selectedSchedule.schedule_members.map((sm: any) => {
+                          const member = sm.members;
+                          const initial = (member?.name ?? '?').charAt(0).toUpperCase();
+                          return (
+                            <div key={sm.id} className="flex flex-col items-center gap-1.5 w-20">
+                              {member?.photo_url ? (
+                                <img
+                                  src={member.photo_url}
+                                  alt={member.name}
+                                  className="w-16 h-16 rounded-full object-cover ring-2 ring-primary/20 shadow-sm"
+                                />
+                              ) : (
+                                <div className="w-16 h-16 rounded-full gradient-rose flex items-center justify-center text-white font-bold text-lg shadow-sm">
+                                  {initial}
+                                </div>
+                              )}
+                              <span className="text-[11px] font-semibold text-foreground text-center leading-tight line-clamp-2">
+                                {member?.name}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedSchedule.schedule_accessories?.length > 0 && (
+                    <div className="space-y-2.5">
+                      <p className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground flex items-center gap-2">
+                        <Sparkles className="h-3.5 w-3.5" /> Acessórios
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedSchedule.schedule_accessories.map((sa: any) => (
+                          <span key={sa.id} className="bg-primary/12 text-primary text-sm font-semibold px-3.5 py-1.5 rounded-full">
+                            {sa.accessories?.name}
                           </span>
-                        </div>
+                        ))}
                       </div>
-                    )}
-
-                    {selectedSchedule.schedule_members?.length > 0 && (
-                      <div className="space-y-2.5">
-                        <p className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground flex items-center gap-2">
-                          <Users className="h-3.5 w-3.5" /> Ministras
-                        </p>
-                        <div className="flex flex-wrap gap-3">
-                          {selectedSchedule.schedule_members.map((sm: any) => {
-                            const member = sm.members;
-                            const initial = (member?.name ?? '?').charAt(0).toUpperCase();
-                            return (
-                              <div key={sm.id} className="flex flex-col items-center gap-1.5 w-20">
-                                {member?.photo_url ? (
-                                  <img
-                                    src={member.photo_url}
-                                    alt={member.name}
-                                    className="w-16 h-16 rounded-full object-cover ring-2 ring-primary/20 shadow-sm"
-                                  />
-                                ) : (
-                                  <div className="w-16 h-16 rounded-full gradient-rose flex items-center justify-center text-white font-bold text-lg shadow-sm">
-                                    {initial}
-                                  </div>
-                                )}
-                                <span className="text-[11px] font-semibold text-foreground text-center leading-tight line-clamp-2">
-                                  {member?.name}
-                                </span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
-
-                    {selectedSchedule.schedule_accessories?.length > 0 && (
-                      <div className="space-y-2.5">
-                        <p className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground flex items-center gap-2">
-                          <Sparkles className="h-3.5 w-3.5" /> Acessórios
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                          {selectedSchedule.schedule_accessories.map((sa: any) => (
-                            <span key={sa.id} className="bg-primary/12 text-primary text-sm font-semibold px-3.5 py-1.5 rounded-full">
-                              {sa.accessories?.name}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {selectedSchedule.notes && (
-                      <div className="p-4 rounded-xl bg-muted/50 border border-border/30">
-                        <p className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground mb-1">Notas</p>
-                        <p className="text-sm text-foreground/80">{selectedSchedule.notes}</p>
-                      </div>
-                    )}
-                  </motion.div>
-                ) : selectedDate ? (
-                  <motion.div
-                    key="empty"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="flex flex-col items-center justify-center py-16 text-center"
-                  >
-                    <div className="w-16 h-16 rounded-2xl bg-muted/60 flex items-center justify-center mb-4">
-                      <CalendarDays className="h-8 w-8 text-muted-foreground/40" />
                     </div>
-                    <p className="text-muted-foreground text-sm">Nenhuma escala para esta data ✨</p>
-                    {isAdmin && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="mt-4 rounded-xl"
-                        onClick={() => setEditOpen(true)}
-                      >
-                        <Plus className="h-4 w-4 mr-1" /> Criar escala
-                      </Button>
-                    )}
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="no-selection"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="flex flex-col items-center justify-center py-16 text-center"
-                  >
-                    <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
-                      <span className="text-3xl">🪷</span>
+                  )}
+
+                  {selectedSchedule.notes && (
+                    <div className="p-4 rounded-xl bg-muted/50 border border-border/30">
+                      <p className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground mb-1">Notas</p>
+                      <p className="text-sm text-foreground/80">{selectedSchedule.notes}</p>
                     </div>
-                    <p className="text-muted-foreground text-sm">Selecione uma data no calendário 💖</p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </CardContent>
-          </Card>
-        </motion.div>
+                  )}
+                </motion.div>
+              ) : selectedDate ? (
+                <motion.div
+                  key="empty"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="flex flex-col items-center justify-center py-16 text-center"
+                >
+                  <div className="w-16 h-16 rounded-2xl bg-muted/60 flex items-center justify-center mb-4">
+                    <CalendarDays className="h-8 w-8 text-muted-foreground/40" />
+                  </div>
+                  <p className="text-muted-foreground text-sm">Nenhuma escala para esta data ✨</p>
+                  {isAdmin && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-4 rounded-xl"
+                      onClick={() => setEditOpen(true)}
+                    >
+                      <Plus className="h-4 w-4 mr-1" /> Criar escala
+                    </Button>
+                  )}
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="no-selection"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="flex flex-col items-center justify-center py-16 text-center"
+                >
+                  <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
+                    <span className="text-3xl">🪷</span>
+                  </div>
+                  <p className="text-muted-foreground text-sm">Selecione uma data no calendário 💖</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          );
+
+          return (
+            <>
+              {/* Desktop (≥ lg): inline card */}
+              <motion.div
+                className="hidden lg:block lg:col-span-2"
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                <Card className="glass-card border-0 h-full">
+                  <CardHeader className="pb-4">{headerNode}</CardHeader>
+                  <CardContent>{bodyNode}</CardContent>
+                </Card>
+              </motion.div>
+
+              {/* Mobile + Tablet (< lg): floating dialog */}
+              <Dialog
+                open={!!selectedDate && !editOpen}
+                onOpenChange={(o) => { if (!o) setSelectedDate(null); }}
+              >
+                <DialogContent className="lg:hidden max-w-[calc(100vw-2rem)] sm:max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl border-0 glass-card p-5">
+                  <DialogHeader>
+                    <DialogTitle className="sr-only">
+                      {selectedDate ? format(selectedDate, "d 'de' MMMM", { locale: ptBR }) : 'Detalhes'}
+                    </DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    {headerNode}
+                    {bodyNode}
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </>
+          );
+        })()}
       </div>
+
 
       {selectedDate && (
         <ScheduleEditDialog
