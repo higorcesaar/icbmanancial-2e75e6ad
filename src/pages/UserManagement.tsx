@@ -412,7 +412,7 @@ export default function UserManagement() {
               <Button type="button" variant="outline" onClick={() => setPasswordDialog(null)} disabled={changingPassword} className="flex-1 h-11 rounded-xl">
                 Cancelar
               </Button>
-              <Button type="submit" disabled={changingPassword} className="flex-1 h-11 rounded-xl gradient-rose text-white font-semibold border-0 shadow-rose hover:opacity-90">
+              <Button type="submit" disabled={changingPassword} className="flex-1 h-11">
                 {changingPassword ? 'Alterando...' : 'Confirmar 💖'}
               </Button>
             </div>
