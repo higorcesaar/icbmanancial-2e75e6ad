@@ -424,7 +424,7 @@ export default function Dashboard() {
             <>
               {/* Desktop (≥ lg): inline card */}
               <motion.div
-                className="hidden lg:block lg:col-span-2"
+                className="hidden xl:block xl:col-span-2"
                 initial={{ opacity: 0, x: 10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.3 }}
