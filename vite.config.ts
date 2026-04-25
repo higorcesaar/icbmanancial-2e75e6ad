@@ -23,7 +23,12 @@ export default defineConfig(({ mode }) => ({
       manifest: false,
       includeAssets: [
         "icon.svg",
+        "favicon.ico",
         "apple-touch-icon-180x180.png",
+        "icon-192.png",
+        "icon-512.png",
+        "icon-maskable-192.png",
+        "icon-maskable-512.png",
         "logo-manancial-transparent.png",
         "robots.txt",
       ],
