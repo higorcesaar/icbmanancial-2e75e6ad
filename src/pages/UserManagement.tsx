@@ -227,7 +227,7 @@ export default function UserManagement() {
           <h2 className="text-xl sm:text-2xl font-bold text-foreground">Usuários</h2>
           <p className="text-xs sm:text-sm text-muted-foreground mt-1">{profiles.length} cadastro{profiles.length !== 1 ? 's' : ''}</p>
         </div>
-        <Button onClick={() => setDialogOpen(true)} size="sm" className="rounded-xl gradient-rose text-white border-0 shadow-rose hover:opacity-90 shrink-0">
+        <Button onClick={() => setDialogOpen(true)} size="sm" className="shrink-0">
           <Plus className="h-4 w-4 mr-1.5" /> Adicionar
         </Button>
       </div>
