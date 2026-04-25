@@ -218,8 +218,7 @@ export default function Login() {
                     )}
                   </div>
 
-                  <Button type="submit" disabled={loading}
-                    className="w-full h-12 rounded-xl gradient-rose text-white font-bold text-lg shadow-rose hover:opacity-90 active:scale-[0.98] border-0 shadow-lg">
+                  <Button type="submit" disabled={loading} className="w-full h-12 text-lg">
                     {loading ? 'Preparando...' : 'Entrar na Escala 💖'}
                   </Button>
 
