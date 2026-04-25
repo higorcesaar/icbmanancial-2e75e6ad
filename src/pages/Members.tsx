@@ -43,7 +43,7 @@ export default function Members() {
           <p className="text-sm text-muted-foreground mt-1">Equipe Manancial</p>
         </div>
         {isAdmin && (
-          <Button onClick={() => { setEditing(null); setDialogOpen(true); }} className="rounded-xl gradient-rose text-white border-0 shadow-rose hover:opacity-90">
+          <Button onClick={() => { setEditing(null); setDialogOpen(true); }}>
             <Plus className="h-4 w-4 mr-1.5" /> Adicionar
           </Button>
         )}
