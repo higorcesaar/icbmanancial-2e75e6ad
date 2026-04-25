@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ChevronLeft, ChevronRight, Users, Plus, CalendarDays, Shirt, Sparkles, Scissors, BarChart3, X, Trash2 } from 'lucide-react';
 import { OutfitViewer } from '@/components/OutfitViewer';
+import danceIcon from '@/assets/dance-icon.png';
 
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths, isSameDay, isToday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -220,9 +221,16 @@ export default function Dashboard() {
                         ${!isSelected && !today && !hasSchedule ? 'hover:bg-muted text-foreground/80' : ''}
                       `}
                     >
-                      {day.getDate()}
+                      <span className="leading-none">{day.getDate()}</span>
                       {hasSchedule && (
-                        <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white/90' : 'bg-primary'}`} />
+                        <img
+                          src={danceIcon}
+                          alt="Escala marcada"
+                          width={512}
+                          height={512}
+                          loading="lazy"
+                          className={`w-4 h-4 sm:w-5 sm:h-5 object-contain drop-shadow-sm ${isSelected ? 'brightness-0 invert' : ''}`}
+                        />
                       )}
                     </button>
                   );
