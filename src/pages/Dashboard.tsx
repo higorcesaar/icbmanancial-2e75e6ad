@@ -730,7 +730,6 @@ function ScheduleEditDialog({ open, onOpenChange, date, schedule, members, outfi
                       size="sm"
                       onClick={handleAddCustomType}
                       disabled={!customTypeInput.trim()}
-                      className="rounded-xl gradient-rose text-white border-0 px-4"
                     >
                       Usar
                     </Button>
