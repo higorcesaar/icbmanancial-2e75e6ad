@@ -119,6 +119,50 @@ Deno.serve(async (req) => {
       });
     }
 
+    if (action === "change_role") {
+      // Server-side authorization for role changes (cannot trust client isAdmin flag)
+      const allowed = ["admin", "ministra"];
+      if (!allowed.includes(body.role)) {
+        return new Response(JSON.stringify({ error: "Função inválida" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const { data: prof } = await admin
+        .from("profiles").select("user_id").eq("id", body.user_id).maybeSingle();
+      const targetId = prof?.user_id ?? body.user_id;
+      // Prevent admin from removing their own admin role (lockout protection)
+      if (targetId === userData.user.id && body.role !== "admin") {
+        return new Response(JSON.stringify({ error: "Você não pode remover seu próprio acesso de administrador" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      await admin.from("user_roles").delete().eq("user_id", targetId);
+      await admin.from("user_roles").insert({ user_id: targetId, role: body.role });
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (action === "toggle_active") {
+      const { data: prof } = await admin
+        .from("profiles").select("user_id, is_active").eq("id", body.user_id).maybeSingle();
+      if (!prof) {
+        return new Response(JSON.stringify({ error: "Usuário não encontrado" }), {
+          status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      // Prevent self-deactivation
+      if (prof.user_id === userData.user.id) {
+        return new Response(JSON.stringify({ error: "Você não pode desativar a si mesma" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      await admin.from("profiles").update({ is_active: !prof.is_active }).eq("id", body.user_id);
+      return new Response(JSON.stringify({ success: true, is_active: !prof.is_active }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // default: create
     const { email, password, display_name, role } = body;
     const { data: created, error: cErr } = await admin.auth.admin.createUser({
@@ -135,7 +179,8 @@ Deno.serve(async (req) => {
     });
   } catch (err: any) {
     console.error("create-user error:", err);
-    return new Response(JSON.stringify({ error: err.message ?? "Internal error" }), {
+    // Do not leak internal error details to client
+    return new Response(JSON.stringify({ error: "Não foi possível concluir a operação. Tente novamente." }), {
       status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
