@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { ChevronLeft, ChevronRight, Users, Plus, CalendarDays, Shirt, Sparkles, Scissors, BarChart3, X, Trash2 } from 'lucide-react';
 import { OutfitViewer } from '@/components/OutfitViewer';
 import danceIcon from '@/assets/dance-icon.png';
+import { useIsMobileOrTablet } from '@/hooks/use-mobile-or-tablet';
 
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths, isSameDay, isToday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -22,6 +23,7 @@ const WEEKDAYS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
 
 export default function Dashboard() {
   const { isAdmin } = useAuth();
+  const isMobileOrTablet = useIsMobileOrTablet();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [editOpen, setEditOpen] = useState(false);
@@ -437,7 +439,7 @@ export default function Dashboard() {
 
               {/* Mobile + Tablet (< lg): floating dialog */}
               <Dialog
-                open={!!selectedDate && !editOpen}
+                open={isMobileOrTablet && !!selectedDate && !editOpen}
                 onOpenChange={(o) => { if (!o) setSelectedDate(null); }}
               >
                 <DialogContent className="xl:hidden max-w-[calc(100vw-2rem)] sm:max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl border-0 glass-card p-5">
