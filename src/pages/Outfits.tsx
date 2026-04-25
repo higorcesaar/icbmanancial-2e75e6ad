@@ -43,10 +43,7 @@ export default function Outfits() {
           <p className="text-sm text-muted-foreground mt-1">Gerencie os fardamentos do ministério</p>
         </div>
         {isAdmin && (
-          <Button
-            onClick={() => { setEditing(null); setDialogOpen(true); }}
-            className="rounded-xl gradient-rose text-white border-0 shadow-rose hover:opacity-90 transition-opacity"
-          >
+          <Button onClick={() => { setEditing(null); setDialogOpen(true); }}>
             <Plus className="h-4 w-4 mr-1.5" /> Adicionar
           </Button>
         )}
