@@ -23,6 +23,7 @@ const WEEKDAYS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
 
 export default function Dashboard() {
   const { isAdmin } = useAuth();
+  const isMobileOrTablet = useIsMobileOrTablet();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [editOpen, setEditOpen] = useState(false);
