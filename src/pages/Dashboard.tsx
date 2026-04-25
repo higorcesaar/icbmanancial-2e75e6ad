@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { ChevronLeft, ChevronRight, Users, Plus, CalendarDays, Shirt, Sparkles, Scissors, BarChart3, X, Trash2 } from 'lucide-react';
 import { OutfitViewer } from '@/components/OutfitViewer';
 import danceIcon from '@/assets/dance-icon.png';
+import { useIsMobileOrTablet } from '@/hooks/use-mobile-or-tablet';
 
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths, isSameDay, isToday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
