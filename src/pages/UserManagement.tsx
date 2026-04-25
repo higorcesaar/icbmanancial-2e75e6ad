@@ -85,13 +85,13 @@ export default function UserManagement() {
   });
 
   const toggleActive = async (profile: any) => {
-    const { error } = await supabase
-      .from('profiles')
-      .update({ is_active: !profile.is_active })
-      .eq('id', profile.id);
-    if (error) {
-      console.error('Erro ao alternar status:', error);
-      toast.error('Erro ao atualizar status: ' + error.message);
+    // Server-side: edge function verifies admin role before mutating
+    const { data, error } = await supabase.functions.invoke('create-user', {
+      body: { action: 'toggle_active', user_id: profile.id },
+    });
+    if (error || (data as any)?.error) {
+      console.error('Erro ao alternar status:', error ?? (data as any)?.error);
+      toast.error('Não foi possível atualizar o status');
       return;
     }
     queryClient.invalidateQueries({ queryKey: ['profiles-with-roles'] });
@@ -100,27 +100,17 @@ export default function UserManagement() {
 
   const changeRole = async (profile: any, newRole: string) => {
     if (profile.role === newRole) return;
-    try {
-      // profile.id is profiles.id; we need the auth user_id
-      const targetUserId = profile.user_id ?? profile.id;
-
-      const { error: delErr } = await supabase
-        .from('user_roles')
-        .delete()
-        .eq('user_id', targetUserId);
-      if (delErr) throw delErr;
-
-      const { error: insErr } = await supabase
-        .from('user_roles')
-        .insert({ user_id: targetUserId, role: newRole as any });
-      if (insErr) throw insErr;
-
-      await queryClient.invalidateQueries({ queryKey: ['profiles-with-roles'] });
-      toast.success(`Permissão ${newRole === 'admin' ? 'de Admin' : 'de Ministra'} atualizada ✨`);
-    } catch (err: any) {
-      console.error('Erro ao atualizar cargo:', err);
-      toast.error('Erro ao salvar permissão: ' + (err.message ?? 'desconhecido'));
+    // Server-side: edge function verifies admin role before mutating
+    const { data, error } = await supabase.functions.invoke('create-user', {
+      body: { action: 'change_role', user_id: profile.id, role: newRole },
+    });
+    if (error || (data as any)?.error) {
+      console.error('Erro ao atualizar cargo:', error ?? (data as any)?.error);
+      toast.error((data as any)?.error ?? 'Erro ao salvar permissão');
+      return;
     }
+    await queryClient.invalidateQueries({ queryKey: ['profiles-with-roles'] });
+    toast.success(`Permissão ${newRole === 'admin' ? 'de Admin' : 'de Ministra'} atualizada ✨`);
   };
 
   const deleteUser = async (profile: any) => {
