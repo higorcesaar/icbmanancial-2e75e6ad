@@ -441,6 +441,7 @@ export default function Dashboard() {
               <Dialog
                 open={isMobileOrTablet && !!selectedDate && !editOpen}
                 onOpenChange={(o) => { if (!o && !editOpen) setSelectedDate(null); }}
+                disableBackButtonClose
               >
                 <DialogContent className="xl:hidden max-w-[calc(100vw-2rem)] sm:max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl border-0 glass-card p-5">
                   <DialogHeader>
