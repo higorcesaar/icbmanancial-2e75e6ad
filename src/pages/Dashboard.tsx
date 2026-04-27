@@ -251,12 +251,16 @@ export default function Dashboard() {
                   <CardTitle className="text-lg sm:text-xl text-foreground">
                     {selectedDate ? format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR }) : 'Selecione uma data'}
                   </CardTitle>
-                  {selectedSchedule?.type && (
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary text-primary px-3 py-1 text-xs font-semibold border border-primary/15 shadow-sm capitalize">
-                      <CalendarDays className="h-3.5 w-3.5" />
-                      {selectedSchedule.type}
-                    </span>
-                  )}
+                  {selectedSchedule?.type && selectedSchedule.type.split(',').map((t: string, i: number) => {
+                    const label = t.trim();
+                    if (!label) return null;
+                    return (
+                      <span key={i} className="inline-flex items-center gap-1.5 rounded-full bg-secondary text-primary px-3 py-1 text-xs font-semibold border border-primary/15 shadow-sm capitalize">
+                        <CalendarDays className="h-3.5 w-3.5" />
+                        {label}
+                      </span>
+                    );
+                  })}
                 </div>
                 {selectedDate && (
                   <p className="text-xs text-muted-foreground mt-1">
@@ -540,7 +544,7 @@ export default function Dashboard() {
 
 function ScheduleEditDialog({ open, onOpenChange, date, schedule, members, outfits, accessories, onSave }: any) {
   const DEFAULT_TYPES = ['Celebração', 'RCE', 'Santa Ceia', 'Congresso', 'Conferência', 'Aniversário Da Igreja'];
-  const [type, setType] = useState(DEFAULT_TYPES[0].toLowerCase());
+  const [selectedTypes, setSelectedTypes] = useState<string[]>([DEFAULT_TYPES[0].toLowerCase()]);
   const [customTypeInput, setCustomTypeInput] = useState('');
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [selectedOutfits, setSelectedOutfits] = useState<string[]>([]);
@@ -584,14 +588,15 @@ function ScheduleEditDialog({ open, onOpenChange, date, schedule, members, outfi
       setShowCustomInput(false);
       setCustomTypeInput('');
       if (schedule) {
-        setType(schedule.type ?? 'culto');
+        const rawType = schedule.type ?? 'culto';
+        setSelectedTypes(rawType.split(',').map((t: string) => t.trim().toLowerCase()).filter(Boolean));
         setSelectedOutfits(schedule.schedule_outfits?.map((so: any) => so.outfit_id) ?? []);
         setHairStyle(schedule.hair_style ?? '');
         setNotes(schedule.notes ?? '');
         setSelectedMembers(schedule.schedule_members?.map((sm: any) => sm.member_id) ?? []);
         setSelectedAccessories(schedule.schedule_accessories?.map((sa: any) => sa.accessory_id) ?? []);
       } else {
-        setType(DEFAULT_TYPES[0].toLowerCase());
+        setSelectedTypes([DEFAULT_TYPES[0].toLowerCase()]);
         setSelectedOutfits([]);
         setHairStyle('');
         setNotes('');
@@ -603,6 +608,11 @@ function ScheduleEditDialog({ open, onOpenChange, date, schedule, members, outfi
 
   const queryClient = useQueryClient();
 
+  const toggleType = (label: string) => {
+    const lower = label.toLowerCase();
+    setSelectedTypes(prev => prev.includes(lower) ? prev.filter(t => t !== lower) : [...prev, lower]);
+  };
+
   const handleAddCustomType = () => {
     const trimmed = customTypeInput.trim();
     if (trimmed) {
@@ -612,7 +622,8 @@ function ScheduleEditDialog({ open, onOpenChange, date, schedule, members, outfi
       if (!existsInDefaults && !existsInCustom) {
         saveCustomTypes([...customTypes, trimmed]);
       }
-      setType(trimmed.toLowerCase());
+      const lower = trimmed.toLowerCase();
+      setSelectedTypes(prev => prev.includes(lower) ? prev : [...prev, lower]);
       setCustomTypeInput('');
       setShowCustomInput(false);
     }
@@ -622,17 +633,19 @@ function ScheduleEditDialog({ open, onOpenChange, date, schedule, members, outfi
     const typeLower = typeLabel.toLowerCase();
     // Remove only from the custom list — does NOT touch existing schedules
     saveCustomTypes(customTypes.filter(t => t.toLowerCase() !== typeLower));
-    if (type.toLowerCase() === typeLower) {
-      setType(DEFAULT_TYPES[0].toLowerCase());
-    }
+    setSelectedTypes(prev => {
+      const next = prev.filter(t => t !== typeLower);
+      return next.length === 0 ? [DEFAULT_TYPES[0].toLowerCase()] : next;
+    });
     toast.success(`Tipo "${typeLabel}" removido da lista ✨`);
   };
 
   const handleSave = async () => {
-    if (!type.trim()) {
-      toast.error('Digite o tipo de culto');
+    if (selectedTypes.length === 0) {
+      toast.error('Selecione ao menos um tipo de culto');
       return;
     }
+    const typeStr = selectedTypes.map(t => t.trim()).filter(Boolean).join(', ');
     setSaving(true);
     try {
       const dateStr = format(date, 'yyyy-MM-dd');
@@ -640,11 +653,11 @@ function ScheduleEditDialog({ open, onOpenChange, date, schedule, members, outfi
 
       if (schedule) {
         await supabase.from('schedules').update({
-          type: type.trim(), hair_style: hairStyle || null, notes: notes || null,
+          type: typeStr, hair_style: hairStyle || null, notes: notes || null,
         }).eq('id', schedule.id);
       } else {
         const { data } = await supabase.from('schedules').insert({
-          date: dateStr, type: type.trim(), hair_style: hairStyle || null, notes: notes || null,
+          date: dateStr, type: typeStr, hair_style: hairStyle || null, notes: notes || null,
         }).select().single();
         scheduleId = data?.id;
       }
@@ -689,8 +702,9 @@ function ScheduleEditDialog({ open, onOpenChange, date, schedule, members, outfi
   const sortedMembers = [...members].sort((a: any, b: any) => a.name.localeCompare(b.name));
   const sortedAccessories = [...accessories].sort((a: any, b: any) => a.name.localeCompare(b.name));
 
-  // Check if current type matches any button
-  const isCustomType = !allTypes.some(t => t.label.toLowerCase() === type.toLowerCase());
+  // Custom (non-listed) types currently selected
+  const allTypeLabelsLower = allTypes.map(t => t.label.toLowerCase());
+  const customSelected = selectedTypes.filter(t => t && !allTypeLabelsLower.includes(t));
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -703,15 +717,17 @@ function ScheduleEditDialog({ open, onOpenChange, date, schedule, members, outfi
         <div className="space-y-5 mt-2">
           {/* Type */}
           <div className="space-y-2">
-            <label className="text-xs uppercase tracking-wider font-bold text-muted-foreground">Tipo de Culto</label>
+            <label className="text-xs uppercase tracking-wider font-bold text-muted-foreground">Tipo de Culto <span className="text-muted-foreground/60 normal-case font-normal">(selecione um ou mais)</span></label>
             <div className="flex flex-wrap gap-2">
-              {allTypes.map(t => (
+              {allTypes.map(t => {
+                const isSel = selectedTypes.includes(t.label.toLowerCase());
+                return (
                 <div key={t.label} className="relative group/type inline-flex">
                   <button
                     type="button"
-                    onClick={() => { setType(t.label.toLowerCase()); setShowCustomInput(false); }}
+                    onClick={() => { toggleType(t.label); setShowCustomInput(false); }}
                     className={`px-3.5 py-1.5 text-sm rounded-full font-medium transition-all ${
-                      type.toLowerCase() === t.label.toLowerCase() ? 'gradient-rose text-white shadow-sm' : 'bg-muted/50 text-foreground/60 hover:bg-muted'
+                      isSel ? 'gradient-rose text-white shadow-sm' : 'bg-muted/50 text-foreground/60 hover:bg-muted'
                     } ${t.deletable ? 'pr-7' : ''}`}
                   >
                     {t.label}
@@ -728,16 +744,19 @@ function ScheduleEditDialog({ open, onOpenChange, date, schedule, members, outfi
                     </button>
                   )}
                 </div>
-              ))}
-              {/* Show the current custom type as a selected button if it's not in the list */}
-              {isCustomType && type.trim() && (
+                );
+              })}
+              {/* Show currently selected custom types not in the list */}
+              {customSelected.map(ct => (
                 <button
+                  key={ct}
                   type="button"
-                  className="px-3.5 py-1.5 text-sm rounded-full font-medium transition-all gradient-rose text-white shadow-sm"
+                  onClick={() => toggleType(ct)}
+                  className="px-3.5 py-1.5 text-sm rounded-full font-medium transition-all gradient-rose text-white shadow-sm capitalize"
                 >
-                  {type.charAt(0).toUpperCase() + type.slice(1)}
+                  {ct}
                 </button>
-              )}
+              ))}
               {/* Button to add a new custom type - always fixed */}
               <button
                 type="button"
@@ -877,7 +896,7 @@ function ScheduleEditDialog({ open, onOpenChange, date, schedule, members, outfi
 
           <Button
             onClick={handleSave}
-            disabled={saving || !type.trim()}
+            disabled={saving || selectedTypes.length === 0}
             className="w-full h-12 text-base"
           >
             {saving ? 'Salvando...' : 'Salvar escala 💖'}
