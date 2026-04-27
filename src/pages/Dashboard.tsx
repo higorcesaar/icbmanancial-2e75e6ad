@@ -544,7 +544,7 @@ export default function Dashboard() {
 
 function ScheduleEditDialog({ open, onOpenChange, date, schedule, members, outfits, accessories, onSave }: any) {
   const DEFAULT_TYPES = ['Celebração', 'RCE', 'Santa Ceia', 'Congresso', 'Conferência', 'Aniversário Da Igreja'];
-  const [type, setType] = useState(DEFAULT_TYPES[0].toLowerCase());
+  const [selectedTypes, setSelectedTypes] = useState<string[]>([DEFAULT_TYPES[0].toLowerCase()]);
   const [customTypeInput, setCustomTypeInput] = useState('');
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [selectedOutfits, setSelectedOutfits] = useState<string[]>([]);
