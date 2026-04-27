@@ -251,12 +251,16 @@ export default function Dashboard() {
                   <CardTitle className="text-lg sm:text-xl text-foreground">
                     {selectedDate ? format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR }) : 'Selecione uma data'}
                   </CardTitle>
-                  {selectedSchedule?.type && (
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary text-primary px-3 py-1 text-xs font-semibold border border-primary/15 shadow-sm capitalize">
-                      <CalendarDays className="h-3.5 w-3.5" />
-                      {selectedSchedule.type}
-                    </span>
-                  )}
+                  {selectedSchedule?.type && selectedSchedule.type.split(',').map((t: string, i: number) => {
+                    const label = t.trim();
+                    if (!label) return null;
+                    return (
+                      <span key={i} className="inline-flex items-center gap-1.5 rounded-full bg-secondary text-primary px-3 py-1 text-xs font-semibold border border-primary/15 shadow-sm capitalize">
+                        <CalendarDays className="h-3.5 w-3.5" />
+                        {label}
+                      </span>
+                    );
+                  })}
                 </div>
                 {selectedDate && (
                   <p className="text-xs text-muted-foreground mt-1">
