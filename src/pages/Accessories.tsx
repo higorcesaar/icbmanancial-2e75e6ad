@@ -115,9 +115,9 @@ function AccessoryDialog({ open, onOpenChange, accessory, onSaved }: any) {
       }
 
       if (accessory) {
-        await supabase.from('accessories').update({ name, description: description || null }).eq('id', accessory.id);
+        await supabase.from('accessories').update({ name, description: description || null, image_url: imageUrl }).eq('id', accessory.id);
       } else {
-        await supabase.from('accessories').insert({ name, description: description || null });
+        await supabase.from('accessories').insert({ name, description: description || null, image_url: imageUrl });
       }
       toast.success('Acessório salvo ✨');
       onSaved();
