@@ -702,8 +702,9 @@ function ScheduleEditDialog({ open, onOpenChange, date, schedule, members, outfi
   const sortedMembers = [...members].sort((a: any, b: any) => a.name.localeCompare(b.name));
   const sortedAccessories = [...accessories].sort((a: any, b: any) => a.name.localeCompare(b.name));
 
-  // Check if current type matches any button
-  const isCustomType = !allTypes.some(t => t.label.toLowerCase() === type.toLowerCase());
+  // Custom (non-listed) types currently selected
+  const allTypeLabelsLower = allTypes.map(t => t.label.toLowerCase());
+  const customSelected = selectedTypes.filter(t => t && !allTypeLabelsLower.includes(t));
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -716,15 +717,17 @@ function ScheduleEditDialog({ open, onOpenChange, date, schedule, members, outfi
         <div className="space-y-5 mt-2">
           {/* Type */}
           <div className="space-y-2">
-            <label className="text-xs uppercase tracking-wider font-bold text-muted-foreground">Tipo de Culto</label>
+            <label className="text-xs uppercase tracking-wider font-bold text-muted-foreground">Tipo de Culto <span className="text-muted-foreground/60 normal-case font-normal">(selecione um ou mais)</span></label>
             <div className="flex flex-wrap gap-2">
-              {allTypes.map(t => (
+              {allTypes.map(t => {
+                const isSel = selectedTypes.includes(t.label.toLowerCase());
+                return (
                 <div key={t.label} className="relative group/type inline-flex">
                   <button
                     type="button"
-                    onClick={() => { setType(t.label.toLowerCase()); setShowCustomInput(false); }}
+                    onClick={() => { toggleType(t.label); setShowCustomInput(false); }}
                     className={`px-3.5 py-1.5 text-sm rounded-full font-medium transition-all ${
-                      type.toLowerCase() === t.label.toLowerCase() ? 'gradient-rose text-white shadow-sm' : 'bg-muted/50 text-foreground/60 hover:bg-muted'
+                      isSel ? 'gradient-rose text-white shadow-sm' : 'bg-muted/50 text-foreground/60 hover:bg-muted'
                     } ${t.deletable ? 'pr-7' : ''}`}
                   >
                     {t.label}
@@ -741,16 +744,19 @@ function ScheduleEditDialog({ open, onOpenChange, date, schedule, members, outfi
                     </button>
                   )}
                 </div>
-              ))}
-              {/* Show the current custom type as a selected button if it's not in the list */}
-              {isCustomType && type.trim() && (
+                );
+              })}
+              {/* Show currently selected custom types not in the list */}
+              {customSelected.map(ct => (
                 <button
+                  key={ct}
                   type="button"
-                  className="px-3.5 py-1.5 text-sm rounded-full font-medium transition-all gradient-rose text-white shadow-sm"
+                  onClick={() => toggleType(ct)}
+                  className="px-3.5 py-1.5 text-sm rounded-full font-medium transition-all gradient-rose text-white shadow-sm capitalize"
                 >
-                  {type.charAt(0).toUpperCase() + type.slice(1)}
+                  {ct}
                 </button>
-              )}
+              ))}
               {/* Button to add a new custom type - always fixed */}
               <button
                 type="button"
