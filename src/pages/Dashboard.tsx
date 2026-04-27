@@ -588,14 +588,15 @@ function ScheduleEditDialog({ open, onOpenChange, date, schedule, members, outfi
       setShowCustomInput(false);
       setCustomTypeInput('');
       if (schedule) {
-        setType(schedule.type ?? 'culto');
+        const rawType = schedule.type ?? 'culto';
+        setSelectedTypes(rawType.split(',').map((t: string) => t.trim().toLowerCase()).filter(Boolean));
         setSelectedOutfits(schedule.schedule_outfits?.map((so: any) => so.outfit_id) ?? []);
         setHairStyle(schedule.hair_style ?? '');
         setNotes(schedule.notes ?? '');
         setSelectedMembers(schedule.schedule_members?.map((sm: any) => sm.member_id) ?? []);
         setSelectedAccessories(schedule.schedule_accessories?.map((sa: any) => sa.accessory_id) ?? []);
       } else {
-        setType(DEFAULT_TYPES[0].toLowerCase());
+        setSelectedTypes([DEFAULT_TYPES[0].toLowerCase()]);
         setSelectedOutfits([]);
         setHairStyle('');
         setNotes('');
