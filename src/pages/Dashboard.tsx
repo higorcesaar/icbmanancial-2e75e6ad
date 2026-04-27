@@ -608,6 +608,11 @@ function ScheduleEditDialog({ open, onOpenChange, date, schedule, members, outfi
 
   const queryClient = useQueryClient();
 
+  const toggleType = (label: string) => {
+    const lower = label.toLowerCase();
+    setSelectedTypes(prev => prev.includes(lower) ? prev.filter(t => t !== lower) : [...prev, lower]);
+  };
+
   const handleAddCustomType = () => {
     const trimmed = customTypeInput.trim();
     if (trimmed) {
@@ -617,7 +622,8 @@ function ScheduleEditDialog({ open, onOpenChange, date, schedule, members, outfi
       if (!existsInDefaults && !existsInCustom) {
         saveCustomTypes([...customTypes, trimmed]);
       }
-      setType(trimmed.toLowerCase());
+      const lower = trimmed.toLowerCase();
+      setSelectedTypes(prev => prev.includes(lower) ? prev : [...prev, lower]);
       setCustomTypeInput('');
       setShowCustomInput(false);
     }
@@ -627,17 +633,19 @@ function ScheduleEditDialog({ open, onOpenChange, date, schedule, members, outfi
     const typeLower = typeLabel.toLowerCase();
     // Remove only from the custom list — does NOT touch existing schedules
     saveCustomTypes(customTypes.filter(t => t.toLowerCase() !== typeLower));
-    if (type.toLowerCase() === typeLower) {
-      setType(DEFAULT_TYPES[0].toLowerCase());
-    }
+    setSelectedTypes(prev => {
+      const next = prev.filter(t => t !== typeLower);
+      return next.length === 0 ? [DEFAULT_TYPES[0].toLowerCase()] : next;
+    });
     toast.success(`Tipo "${typeLabel}" removido da lista ✨`);
   };
 
   const handleSave = async () => {
-    if (!type.trim()) {
-      toast.error('Digite o tipo de culto');
+    if (selectedTypes.length === 0) {
+      toast.error('Selecione ao menos um tipo de culto');
       return;
     }
+    const typeStr = selectedTypes.map(t => t.trim()).filter(Boolean).join(', ');
     setSaving(true);
     try {
       const dateStr = format(date, 'yyyy-MM-dd');
@@ -645,11 +653,11 @@ function ScheduleEditDialog({ open, onOpenChange, date, schedule, members, outfi
 
       if (schedule) {
         await supabase.from('schedules').update({
-          type: type.trim(), hair_style: hairStyle || null, notes: notes || null,
+          type: typeStr, hair_style: hairStyle || null, notes: notes || null,
         }).eq('id', schedule.id);
       } else {
         const { data } = await supabase.from('schedules').insert({
-          date: dateStr, type: type.trim(), hair_style: hairStyle || null, notes: notes || null,
+          date: dateStr, type: typeStr, hair_style: hairStyle || null, notes: notes || null,
         }).select().single();
         scheduleId = data?.id;
       }
