@@ -369,9 +369,14 @@ export default function Dashboard() {
                       </p>
                       <div className="flex flex-wrap gap-2">
                         {selectedSchedule.schedule_accessories.map((sa: any) => (
-                          <span key={sa.id} className="bg-primary/12 text-primary text-sm font-semibold px-3.5 py-1.5 rounded-full">
+                          <button
+                            key={sa.id}
+                            onClick={() => setViewingOutfit(sa.accessories)}
+                            className="bg-primary/12 text-primary text-sm font-semibold px-3.5 py-1.5 rounded-full hover:bg-primary/25 transition-colors cursor-pointer"
+                            title="Ver acessório em 360°"
+                          >
                             {sa.accessories?.name}
-                          </span>
+                          </button>
                         ))}
                       </div>
                     </div>
@@ -507,7 +512,7 @@ export default function Dashboard() {
         </DialogContent>
       </Dialog>
 
-      {/* Outfit 360° Viewer */}
+      {/* Outfit / Accessory 360° Viewer */}
       <Dialog open={!!viewingOutfit} onOpenChange={(o) => !o && setViewingOutfit(null)}>
         <DialogContent className="max-w-md rounded-2xl border-0 glass-card">
           <DialogHeader>
