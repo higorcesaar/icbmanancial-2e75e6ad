@@ -896,7 +896,7 @@ function ScheduleEditDialog({ open, onOpenChange, date, schedule, members, outfi
 
           <Button
             onClick={handleSave}
-            disabled={saving || !type.trim()}
+            disabled={saving || selectedTypes.length === 0}
             className="w-full h-12 text-base"
           >
             {saving ? 'Salvando...' : 'Salvar escala 💖'}
