@@ -1,0 +1,1 @@
+ALTER TABLE public.accessories ADD COLUMN IF NOT EXISTS image_front_url TEXT, ADD COLUMN IF NOT EXISTS image_back_url TEXT;
