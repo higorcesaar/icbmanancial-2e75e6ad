@@ -10,6 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import Members from "./pages/Members";
 import Outfits from "./pages/Outfits";
 import Accessories from "./pages/Accessories";
+import Videos from "./pages/Videos";
 import History from "./pages/History";
 import UserManagement from "./pages/UserManagement";
 import NotFound from "./pages/NotFound";
@@ -40,6 +41,7 @@ function ProtectedRoutes() {
         <Route path="membros" element={isAdmin ? <Members /> : <Navigate to="/" replace />} />
         <Route path="roupas" element={<Outfits />} />
         <Route path="acessorios" element={<Accessories />} />
+        <Route path="videos" element={<Videos />} />
         <Route path="historico" element={isAdmin ? <History /> : <Navigate to="/" replace />} />
         <Route path="usuarios" element={<UserManagement />} />
       </Route>
