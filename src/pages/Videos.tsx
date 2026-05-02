@@ -19,6 +19,14 @@ type UploadPhase = 'idle' | 'compressing' | 'uploading' | 'saving';
 const BUCKET = 'videos';
 const SIGNED_URL_TTL = 60 * 60; // 1 hour
 
+async function getSignedUrl(path: string): Promise<string | null> {
+  const { data, error } = await supabase.storage
+    .from(BUCKET)
+    .createSignedUrl(path, SIGNED_URL_TTL);
+  if (error) return null;
+  return data.signedUrl;
+}
+
 export default function Videos() {
   const { isAdmin } = useAuth();
   const queryClient = useQueryClient();
@@ -30,7 +38,6 @@ export default function Videos() {
   const [phase, setPhase] = useState<UploadPhase>('idle');
   const [progress, setProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const signedUrlsCache = useRef<Record<string, string>>({});
   const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
 
   useRealtimeTable('videos', [['videos']]);
@@ -51,43 +58,18 @@ export default function Videos() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const pathsToFetch: string[] = [];
-      const idToPath: Record<string, string> = {};
-      const nextUrls: Record<string, string> = { ...signedUrlsCache.current };
-
-      for (const v of videos as any[]) {
-        const path = v.video_url as string;
-        if (!path) {
-          nextUrls[v.id] = '';
-        } else if (/^https?:\/\//i.test(path)) {
-          nextUrls[v.id] = path;
-        } else if (nextUrls[v.id]) {
-          // already cached
-        } else {
-          pathsToFetch.push(path);
-          idToPath[v.id] = path;
-        }
-      }
-
-      if (pathsToFetch.length > 0) {
-        // Fetch missing URLs in bulk
-        const { data, error } = await supabase.storage
-          .from(BUCKET)
-          .createSignedUrls(Array.from(new Set(pathsToFetch)), SIGNED_URL_TTL);
-        
-        if (!error && data) {
-          const pathMap = Object.fromEntries(data.map(d => [d.path, d.signedUrl]));
-          for (const [id, path] of Object.entries(idToPath)) {
-            if (pathMap[path]) {
-              nextUrls[id] = pathMap[path];
-            }
-          }
-        }
-      }
-
+      const entries = await Promise.all(
+        (videos as any[]).map(async (v) => {
+          const path = v.video_url as string;
+          if (!path) return [v.id, ''] as const;
+          // Backwards-compat: if it's already an absolute URL, just use it
+          if (/^https?:\/\//i.test(path)) return [v.id, path] as const;
+          const url = await getSignedUrl(path);
+          return [v.id, url ?? ''] as const;
+        })
+      );
       if (!cancelled) {
-        signedUrlsCache.current = nextUrls;
-        setSignedUrls(nextUrls);
+        setSignedUrls(Object.fromEntries(entries));
       }
     })();
     return () => {
@@ -262,7 +244,7 @@ export default function Videos() {
                       <video
                         src={src}
                         controls
-                        preload="none"
+                        preload="metadata"
                         className="w-full h-52 object-contain bg-black"
                       />
                     ) : (
