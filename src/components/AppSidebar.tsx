@@ -1,4 +1,4 @@
-import { Calendar, Users, Shirt, Sparkles, History, UserCog, LogOut } from 'lucide-react';
+import { Calendar, Users, Shirt, Sparkles, Video, History, UserCog, LogOut } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/contexts/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -15,6 +15,7 @@ const mainItems = [
   { title: 'Ministras', url: '/membros', icon: Users, adminOnly: true },
   { title: 'Fardamentos', url: '/roupas', icon: Shirt, adminOnly: false },
   { title: 'Acessórios', url: '/acessorios', icon: Sparkles, adminOnly: false },
+  { title: 'Vídeos', url: '/videos', icon: Video, adminOnly: false },
   { title: 'Histórico', url: '/historico', icon: History, adminOnly: true },
 ];
 
