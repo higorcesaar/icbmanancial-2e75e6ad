@@ -15,6 +15,13 @@
       "when": 1790945751067,
       "tag": "0001_secure_media_storage",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790945789142,
+      "tag": "0002_isolate_role_authorization_function",
+      "breakpoints": true
     }
   ]
 }
