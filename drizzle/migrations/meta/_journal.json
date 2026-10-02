@@ -1,5 +1,13 @@
 {
   "version": "7",
   "dialect": "postgresql",
-  "entries": []
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1790945705475,
+      "tag": "0000_restore_ministerio_manancial_schema",
+      "breakpoints": true
+    }
+  ]
 }
