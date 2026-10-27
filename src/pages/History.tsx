@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { DataQueryNotice } from '@/components/DataQueryNotice';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -20,7 +21,7 @@ export default function History() {
   const years = Array.from({ length: 5 }, (_, i) => String(currentYear - i));
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
 
-  const { data: schedules = [] } = useQuery({
+  const { data: schedules = [], isPending: historyLoading, error: historyError, refetch: retryHistory } = useQuery({
     queryKey: ['history', year],
     queryFn: async () => {
       const { data } = await supabase
@@ -29,6 +30,7 @@ export default function History() {
         .gte('date', `${year}-01-01`)
         .lte('date', `${year}-12-31`)
         .order('date');
+      if (error) throw error;
       return data ?? [];
     },
   });
@@ -73,6 +75,8 @@ export default function History() {
         </div>
       </div>
 
+      <DataQueryNotice loading={historyLoading} error={historyError} label="histórico de escalas" retry={() => void retryHistory()} />
+
       {/* Month grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
         {byMonth.map((m, idx) => (
@@ -96,7 +100,7 @@ export default function History() {
         ))}
       </div>
 
-      {byMonth.every(m => m.schedules.length === 0) && (
+      {!historyLoading && !historyError && byMonth.every(m => m.schedules.length === 0) && (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <div className="w-16 h-16 rounded-2xl bg-muted/60 flex items-center justify-center mb-4">
             <CalendarDays className="h-8 w-8 text-muted-foreground/40" />
