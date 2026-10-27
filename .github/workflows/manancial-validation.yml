@@ -1,0 +1,26 @@
+name: Manancial - validar projeto
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm run test
+      - name: Verificar configuração sem consultar o banco
+        run: node .github/scripts/manancial-db-healthcheck.mjs --validate-only
