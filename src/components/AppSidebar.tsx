@@ -1,6 +1,7 @@
 import { Calendar, Users, Shirt, Sparkles, Video, History, UserCog, LogOut } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/contexts/AuthContext';
+import { ChangeOwnPasswordDialog } from './ChangeOwnPasswordDialog';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -111,6 +112,7 @@ export function AppSidebar() {
         {!collapsed && (
           <p className="text-xs text-muted-foreground truncate mb-2 px-3">{user?.email}</p>
         )}
+        <ChangeOwnPasswordDialog collapsed={collapsed} />
         <Button variant="ghost" size="sm" className="w-full justify-start rounded-xl hover:bg-destructive/10 hover:text-destructive transition-colors" onClick={signOut}>
           <LogOut className="h-4 w-4 mr-2" />
           {!collapsed && 'Sair'}
