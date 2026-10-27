@@ -3,8 +3,16 @@ import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 import { brokeredPreviewStorage } from './previewAuthStorage';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+// The original Manancial database contains the existing users and schedules.
+// Prefer the explicit recovery target over platform-injected Lovable Cloud values.
+// Both settings must be changed together when retiring the recovery override.
+const RECOVERY_URL = import.meta.env.VITE_MANANCIAL_RECOVERY_URL;
+const RECOVERY_KEY = import.meta.env.VITE_MANANCIAL_RECOVERY_PUBLISHABLE_KEY;
+if (Boolean(RECOVERY_URL) !== Boolean(RECOVERY_KEY)) {
+  throw new Error('Configuração incompleta do banco de dados Manancial');
+}
+const SUPABASE_URL = RECOVERY_URL || import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_PUBLISHABLE_KEY = RECOVERY_KEY || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 
 function isNewSupabaseApiKey(value: string): boolean {
