@@ -12,12 +12,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Plus, Pencil, Trash2, Video as VideoIcon, ArrowUp, ArrowDown, Upload, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
-import { compressVideo } from '@/lib/videoCompressor';
 
 type UploadPhase = 'idle' | 'compressing' | 'uploading' | 'saving';
 
 const BUCKET = 'videos';
 const SIGNED_URL_TTL = 60 * 60; // 1 hour
+// A new [] object on each render causes an endless useEffect -> setState loop.
+const EMPTY_VIDEOS: any[] = [];
 
 async function getSignedUrl(path: string): Promise<string | null> {
   const { data, error } = await supabase.storage
@@ -42,15 +43,16 @@ export default function Videos() {
 
   useRealtimeTable('videos', [['videos']]);
 
-  const { data: videos = [] } = useQuery({
+  const { data: videos = EMPTY_VIDEOS, isPending: videosLoading, error: videosError, refetch: retryVideos } = useQuery({
     queryKey: ['videos'],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('videos')
         .select('*')
         .order('position', { ascending: true })
         .order('created_at', { ascending: true });
-      return data ?? [];
+      if (error) throw error;
+      return data ?? EMPTY_VIDEOS;
     },
   });
 
@@ -109,6 +111,8 @@ export default function Videos() {
         // 1. Compress
         setPhase('compressing');
         setProgress(0);
+        // Load ffmpeg.wasm only if someone actually uploads a video.
+        const { compressVideo } = await import('@/lib/videoCompressor');
         const compressed = await compressVideo(videoFile, {
           onProgress: (r) => setProgress(Math.round(r * 100)),
         });
@@ -220,7 +224,17 @@ export default function Videos() {
         )}
       </div>
 
-      {videos.length === 0 ? (
+      {videosLoading ? (
+        <Card className="glass-card border-0"><CardContent className="py-12 text-center text-muted-foreground">
+          Carregando vídeos...
+        </CardContent></Card>
+      ) : videosError ? (
+        <Card className="glass-card border-0"><CardContent className="py-12 text-center space-y-3">
+          <p className="text-destructive font-medium">Não foi possível carregar os vídeos.</p>
+          <p className="text-xs text-muted-foreground">Verifique a conexão e as permissões do banco.</p>
+          <Button variant="outline" onClick={() => void retryVideos()}>Tentar novamente</Button>
+        </CardContent></Card>
+      ) : videos.length === 0 ? (
         <Card className="glass-card border-0">
           <CardContent className="py-16 text-center">
             <VideoIcon className="h-14 w-14 mx-auto text-primary/30 mb-3" />
