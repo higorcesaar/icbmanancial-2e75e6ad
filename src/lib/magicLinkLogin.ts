@@ -8,7 +8,7 @@ export async function sendExistingAccountMagicLink(
   origin: string,
 ) {
   const normalized = email.trim().toLowerCase();
-  if (!normalized || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(normalized)) {
+  if (!normalized || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) {
     throw new Error('Informe um endereço de e-mail válido.');
   }
   const emailRedirectTo = new URL('/', origin).toString();
