@@ -1,0 +1,33 @@
+name: Manancial - atividade e disponibilidade do banco
+
+on:
+  schedule:
+    # 3 leituras por dia (UTC), evitando o minuto zero.
+    - cron: "17 2,10,18 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: manancial-database-keepalive
+  cancel-in-progress: false
+
+jobs:
+  database-read:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      # O par de secrets é opcional. Se vazio, o script lê VITE_* do .env versionado.
+      # Ambos devem ser configurados juntos para nunca misturar projetos/chaves.
+      MANANCIAL_SUPABASE_URL: ${{ secrets.MANANCIAL_SUPABASE_URL }}
+      MANANCIAL_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.MANANCIAL_SUPABASE_PUBLISHABLE_KEY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Consultar banco sem alterar dados
+        run: node .github/scripts/manancial-db-healthcheck.mjs
