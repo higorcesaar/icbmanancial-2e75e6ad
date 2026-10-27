@@ -5,6 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { requestRecoveryEmail } from '@/lib/passwordRecovery';
+import { sendExistingAccountMagicLink } from '@/lib/magicLinkLogin';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, EyeOff, Download, Camera } from 'lucide-react';
 import { CosmicBackground } from '@/components/CosmicBackground';
@@ -21,6 +23,10 @@ export default function Login() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isStandalone, setIsStandalone] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [sendingRecovery, setSendingRecovery] = useState(false);
+  const [recoverySent, setRecoverySent] = useState(false);
+  const [sendingMagicLink, setSendingMagicLink] = useState(false);
+  const [magicLinkSent, setMagicLinkSent] = useState(false);
 
   // Request access form state
   const [reqName, setReqName] = useState('');
@@ -65,6 +71,45 @@ export default function Login() {
       toast.error(err.message ?? 'Email ou senha incorretos');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePasswordRecovery = async () => {
+    const address = email.trim().toLowerCase();
+    if (!address) {
+      toast.error('Informe seu e-mail para receber o link de recuperação.');
+      return;
+    }
+
+    setSendingRecovery(true);
+    try {
+      await requestRecoveryEmail(supabase.auth, address, window.location.origin);
+      setRecoverySent(true);
+      // Do not disclose whether this e-mail exists in the database.
+      toast.success('Se a conta existir, enviaremos as instruções para o e-mail informado.');
+    } catch (err: any) {
+      console.error('Falha na solicitação de recuperação:', err?.message ?? err);
+      toast.error('Não foi possível solicitar o link. Tente novamente mais tarde ou contate a administradora.');
+    } finally {
+      setSendingRecovery(false);
+    }
+  };
+
+  const handleMagicLink = async () => {
+    if (!email.trim()) {
+      toast.error('Informe seu e-mail acima para receber o link de entrada.');
+      return;
+    }
+    setSendingMagicLink(true);
+    try {
+      await sendExistingAccountMagicLink(supabase.auth, email, window.location.origin);
+      setMagicLinkSent(true);
+      toast.success('Se esta conta estiver cadastrada, o link de acesso será enviado ao e-mail informado.');
+    } catch (err: any) {
+      console.error('Falha no login por e-mail:', err?.message ?? err);
+      toast.error('Não foi possível enviar o link de acesso. Confira o e-mail e tente novamente.');
+    } finally {
+      setSendingMagicLink(false);
     }
   };
 
@@ -206,8 +251,19 @@ export default function Login() {
                     </div>
                     {showForgotPassword ? (
                       <div className="p-4 rounded-xl bg-primary/10 border border-primary/20 space-y-3">
-                        <p className="text-sm text-white/80">Para redefinir a senha, contate sua líder ou administradora.</p>
-                        <button type="button" onClick={() => setShowForgotPassword(false)} className="text-xs font-bold text-primary hover:underline">
+                        <p className="text-sm text-white/80">
+                          {recoverySent
+                            ? 'Confira seu e-mail e a pasta de spam. Use o link recebido para definir uma nova senha.'
+                            : 'Informe seu e-mail acima e receba um link para criar uma nova senha.'}
+                        </p>
+                        {!recoverySent && (
+                          <Button type="button" variant="secondary" disabled={sendingRecovery || !email.trim()}
+                            onClick={handlePasswordRecovery} className="w-full">
+                            {sendingRecovery ? 'Enviando...' : 'Enviar link de recuperação'}
+                          </Button>
+                        )}
+                        <button type="button" onClick={() => { setShowForgotPassword(false); setRecoverySent(false); }}
+                          className="text-xs font-bold text-primary hover:underline">
                           ← Voltar ao login
                         </button>
                       </div>
@@ -221,6 +277,15 @@ export default function Login() {
                   <Button type="submit" disabled={loading} className="w-full h-12 text-lg">
                     {loading ? 'Preparando...' : 'Entrar na Escala 💖'}
                   </Button>
+                  <Button type="button" variant="secondary" disabled={sendingMagicLink || !email.trim()}
+                    onClick={handleMagicLink} className="w-full h-11">
+                    {sendingMagicLink ? 'Enviando link...' : magicLinkSent ? 'Reenviar link por e-mail' : 'Entrar com link por e-mail'}
+                  </Button>
+                  {magicLinkSent && (
+                    <p className="text-center text-xs text-white/80">
+                      Confira sua caixa de entrada e spam. O link é temporário e só funciona para contas cadastradas.
+                    </p>
+                  )}
 
                   {!isStandalone && (
                     <Button type="button" onClick={handleInstallClick}

@@ -1,8 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-
-type AppRole = 'admin' | 'ministra';
+import { resolveAppRole, type AppRole } from '@/lib/authRoles';
 
 interface AuthContextType {
   user: User | null;
@@ -24,12 +23,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchRole = async (userId: string) => {
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('user_roles')
         .select('role')
-        .eq('user_id', userId)
-        .maybeSingle();
-      setRole((data?.role as AppRole) ?? 'ministra');
+        .eq('user_id', userId);
+      if (error) throw error;
+      setRole(resolveAppRole(data));
     } catch {
       setRole('ministra');
     }
