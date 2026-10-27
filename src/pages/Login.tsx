@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { requestRecoveryEmail } from '@/lib/passwordRecovery';
-import { sendExistingAccountMagicLink } from '@/lib/magicLinkLogin';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, EyeOff, Download, Camera } from 'lucide-react';
 import { CosmicBackground } from '@/components/CosmicBackground';
@@ -25,8 +24,6 @@ export default function Login() {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [sendingRecovery, setSendingRecovery] = useState(false);
   const [recoverySent, setRecoverySent] = useState(false);
-  const [sendingMagicLink, setSendingMagicLink] = useState(false);
-  const [magicLinkSent, setMagicLinkSent] = useState(false);
 
   // Request access form state
   const [reqName, setReqName] = useState('');
@@ -92,24 +89,6 @@ export default function Login() {
       toast.error('Não foi possível solicitar o link. Tente novamente mais tarde ou contate a administradora.');
     } finally {
       setSendingRecovery(false);
-    }
-  };
-
-  const handleMagicLink = async () => {
-    if (!email.trim()) {
-      toast.error('Informe seu e-mail acima para receber o link de entrada.');
-      return;
-    }
-    setSendingMagicLink(true);
-    try {
-      await sendExistingAccountMagicLink(supabase.auth, email, window.location.origin);
-      setMagicLinkSent(true);
-      toast.success('Se esta conta estiver cadastrada, o link de acesso será enviado ao e-mail informado.');
-    } catch (err: any) {
-      console.error('Falha no login por e-mail:', err?.message ?? err);
-      toast.error('Não foi possível enviar o link de acesso. Confira o e-mail e tente novamente.');
-    } finally {
-      setSendingMagicLink(false);
     }
   };
 
@@ -277,16 +256,6 @@ export default function Login() {
                   <Button type="submit" disabled={loading} className="w-full h-12 text-lg">
                     {loading ? 'Preparando...' : 'Entrar na Escala 💖'}
                   </Button>
-                  <Button type="button" variant="secondary" disabled={sendingMagicLink || !email.trim()}
-                    onClick={handleMagicLink} className="w-full h-11">
-                    {sendingMagicLink ? 'Enviando link...' : magicLinkSent ? 'Reenviar link por e-mail' : 'Entrar com link por e-mail'}
-                  </Button>
-                  {magicLinkSent && (
-                    <p className="text-center text-xs text-white/80">
-                      Confira sua caixa de entrada e spam. O link é temporário e só funciona para contas cadastradas.
-                    </p>
-                  )}
-
                   {!isStandalone && (
                     <Button type="button" onClick={handleInstallClick}
                       className="w-full h-12 rounded-xl bg-white/5 border border-white/10 text-white hover:bg-white/10 font-bold flex items-center justify-center gap-2">
