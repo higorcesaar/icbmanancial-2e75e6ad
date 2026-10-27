@@ -24,7 +24,7 @@ export default function History() {
   const { data: schedules = [], isPending: historyLoading, error: historyError, refetch: retryHistory } = useQuery({
     queryKey: ['history', year],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('schedules')
         .select('*, schedule_outfits(*, outfits(*)), schedule_members(*, members(*)), schedule_accessories(*, accessories(*))')
         .gte('date', `${year}-01-01`)
