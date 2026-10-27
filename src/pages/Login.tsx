@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { requestRecoveryEmail } from '@/lib/passwordRecovery';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, EyeOff, Download, Camera } from 'lucide-react';
 import { CosmicBackground } from '@/components/CosmicBackground';
@@ -79,10 +80,7 @@ export default function Login() {
 
     setSendingRecovery(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(address, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
-      if (error) throw error;
+      await requestRecoveryEmail(supabase.auth, address, window.location.origin);
       setRecoverySent(true);
       // Do not disclose whether this e-mail exists in the database.
       toast.success('Se a conta existir, enviaremos as instruções para o e-mail informado.');
