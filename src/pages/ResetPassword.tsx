@@ -11,20 +11,34 @@ export default function ResetPassword() {
   const [confirm, setConfirm] = useState('');
   const [loading, setLoading] = useState(false);
   const [ready, setReady] = useState(false);
+  const [checkingLink, setCheckingLink] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check for recovery event
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') {
+    let active = true;
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!active) return;
+      if (event === 'PASSWORD_RECOVERY' && session) {
         setReady(true);
+        setCheckingLink(false);
       }
     });
-    // Also check hash
-    if (window.location.hash.includes('type=recovery')) {
-      setReady(true);
-    }
-    return () => subscription.unsubscribe();
+
+    // The link must originate from an e-mail recovery request; do not
+    // display a password form solely because a URL contains type=recovery.
+    const params = new URLSearchParams(window.location.hash.slice(1));
+    const query = new URLSearchParams(window.location.search);
+    const hasRecoveryLink = params.get('type') === 'recovery' ||
+      query.get('type') === 'recovery' || query.has('code');
+    const verifyLink = async () => {
+      if (hasRecoveryLink) {
+        const { data, error } = await supabase.auth.getSession();
+        if (active && !error && data.session) setReady(true);
+      }
+      if (active) setCheckingLink(false);
+    };
+    void verifyLink().catch(() => { if (active) setCheckingLink(false); });
+    return () => { active = false; subscription.unsubscribe(); };
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -41,8 +55,10 @@ export default function ResetPassword() {
     try {
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
-      toast.success('Senha atualizada com sucesso! 💖');
-      navigate('/login');
+      // A recovery session must not remain active after the password changes.
+      await supabase.auth.signOut();
+      toast.success('Senha atualizada com sucesso! Entre novamente com a nova senha. 💖');
+      navigate('/login', { replace: true });
     } catch {
       toast.error('Erro ao atualizar senha. Tente novamente.');
     } finally {
@@ -56,9 +72,20 @@ export default function ResetPassword() {
         <Card className="w-full max-w-md shadow-lg border-none">
           <CardHeader className="text-center space-y-2">
             <span className="text-3xl">🪷</span>
-            <CardTitle>Verificando...</CardTitle>
-            <CardDescription>Aguarde enquanto verificamos seu link de redefinição.</CardDescription>
+            <CardTitle>{checkingLink ? 'Verificando...' : 'Link de recuperação inválido'}</CardTitle>
+            <CardDescription>
+              {checkingLink
+                ? 'Aguarde enquanto verificamos seu link de redefinição.'
+                : 'Solicite um novo link na tela de login. Links expirados ou já utilizados não podem ser reutilizados.'}
+            </CardDescription>
           </CardHeader>
+          {!checkingLink && (
+            <CardContent>
+              <Button type="button" onClick={() => navigate('/login', { replace: true })} className="w-full">
+                Voltar ao login
+              </Button>
+            </CardContent>
+          )}
         </Card>
       </div>
     );
