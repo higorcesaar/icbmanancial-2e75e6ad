@@ -72,7 +72,13 @@ export default function UserManagement() {
         console.warn('Erro ao carregar cargos, usando padrão:', rError.message);
       }
 
-      const rolesMap = new Map((rData || []).map(r => [r.user_id, r.role]));
+      // Prefer admin when legacy data contains more than one role per user.
+      const rolesMap = new Map<string, string>();
+      for (const row of rData || []) {
+        if (row.role === 'admin' || !rolesMap.has(row.user_id)) {
+          rolesMap.set(row.user_id, row.role);
+        }
+      }
       
       const merged = (pData || []).map(p => ({
         ...p,
@@ -307,7 +313,7 @@ export default function UserManagement() {
             <div className="space-y-3">
               {approved.map((p: any, i: number) => {
                 const role = p.role;
-                const isSelf = p.id === currentUser?.id;
+                const isSelf = p.user_id === currentUser?.id;
                 return (
                   <motion.div key={p.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}>
                     <Card className="glass-card border-0 hover:shadow-rose transition-shadow duration-300">
