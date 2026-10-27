@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { DataQueryNotice } from '@/components/DataQueryNotice';
 import { useRealtimeTable } from '@/hooks/use-realtime-table';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -42,7 +43,7 @@ export default function Dashboard() {
   const end = endOfMonth(currentDate);
   const days = eachDayOfInterval({ start, end });
 
-  const { data: schedules = [], refetch: refetchSchedules } = useQuery({
+  const { data: schedules = [], isPending: schedulesLoading, error: schedulesError, refetch: refetchSchedules } = useQuery({
     queryKey: ['schedules', year, month],
     queryFn: async () => {
       const { data } = await supabase
@@ -50,6 +51,7 @@ export default function Dashboard() {
         .select('*, schedule_outfits(*, outfits(*)), schedule_members(*, members(*)), schedule_accessories(*, accessories(*))')
         .gte('date', format(start, 'yyyy-MM-dd'))
         .lte('date', format(end, 'yyyy-MM-dd'));
+      if (error) throw error;
       return data ?? [];
     },
   });
@@ -126,6 +128,7 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-8">
+      <DataQueryNotice loading={schedulesLoading} error={schedulesError} label="escalas do mês" retry={() => void refetchSchedules()} />
       {/* Stats bar */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
