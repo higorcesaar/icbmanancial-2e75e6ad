@@ -46,7 +46,7 @@ export default function Dashboard() {
   const { data: schedules = [], isPending: schedulesLoading, error: schedulesError, refetch: refetchSchedules } = useQuery({
     queryKey: ['schedules', year, month],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('schedules')
         .select('*, schedule_outfits(*, outfits(*)), schedule_members(*, members(*)), schedule_accessories(*, accessories(*))')
         .gte('date', format(start, 'yyyy-MM-dd'))
