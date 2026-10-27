@@ -15,12 +15,10 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          cache: npm
-      - run: npm ci
-      - run: npm run build
-      - run: npm run test
+      # bun.lock está sincronizado com package.json; package-lock.json é legado.
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bun run build
+      - run: bun run test
       - name: Verificar configuração sem consultar o banco
-        run: node .github/scripts/manancial-db-healthcheck.mjs --validate-only
+        run: bun .github/scripts/manancial-db-healthcheck.mjs --validate-only
