@@ -17,6 +17,10 @@ const Dialog = ({ open, onOpenChange, disableBackButtonClose, ...props }: Dialog
   // Mobile back-button support: push history state when opened, close on popstate.
   // Tracks whether close was triggered by popstate to avoid double-back navigation.
   const poppedRef = React.useRef(false);
+  // Callers commonly pass an inline onOpenChange callback. Keep the latest
+  // callback without re-registering history listeners at every render.
+  const onOpenChangeRef = React.useRef(onOpenChange);
+  onOpenChangeRef.current = onOpenChange;
 
   React.useEffect(() => {
     if (!open || disableBackButtonClose) return;
@@ -26,7 +30,7 @@ const Dialog = ({ open, onOpenChange, disableBackButtonClose, ...props }: Dialog
 
     const handlePop = () => {
       poppedRef.current = true;
-      onOpenChange?.(false);
+      onOpenChangeRef.current?.(false);
     };
     window.addEventListener('popstate', handlePop);
 
@@ -38,7 +42,9 @@ const Dialog = ({ open, onOpenChange, disableBackButtonClose, ...props }: Dialog
         window.history.back();
       }
     };
-  }, [open, onOpenChange, disableBackButtonClose]);
+    // Deliberately exclude onOpenChange: its identity often changes while the
+    // modal is open and must never cause another history entry/back navigation.
+  }, [open, disableBackButtonClose]);
 
   return <DialogPrimitive.Root open={open} onOpenChange={onOpenChange} {...props} />;
 };
