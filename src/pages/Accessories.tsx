@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRealtimeTable } from '@/hooks/use-realtime-table';
+import { DataQueryNotice } from '@/components/DataQueryNotice';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,17 +23,22 @@ export default function Accessories() {
 
   useRealtimeTable('accessories', [['accessories'], ['accessories-all']]);
 
-  const { data: accessories = [] } = useQuery({
+  const { data: accessories = [], isPending: dataLoading, error: dataError, refetch: retryData } = useQuery({
     queryKey: ['accessories'],
     queryFn: async () => {
-      const { data } = await supabase.from('accessories').select('*').order('name');
+      const { data, error } = await supabase.from('accessories').select('*').order('name');
+      if (error) throw error;
       return data ?? [];
     },
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async (id: string) => { await supabase.from('accessories').delete().eq('id', id); },
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('accessories').delete().eq('id', id);
+      if (error) throw error;
+    },
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['accessories'] }); toast.success('Acessório removido'); },
+    onError: () => { toast.error('Não foi possível remover o registro. Verifique as dependências e permissões.'); },
   });
 
   return (
@@ -48,6 +54,8 @@ export default function Accessories() {
           </Button>
         )}
       </div>
+
+      <DataQueryNotice loading={dataLoading} error={dataError} label="acessórios" retry={() => void retryData()} />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {accessories.map((a: any, i: number) => {
