@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -6,17 +7,29 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/AppLayout";
 import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
-import Members from "./pages/Members";
-import Outfits from "./pages/Outfits";
-import Accessories from "./pages/Accessories";
-import Videos from "./pages/Videos";
-import History from "./pages/History";
-import UserManagement from "./pages/UserManagement";
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Members = lazy(() => import("./pages/Members"));
+const Outfits = lazy(() => import("./pages/Outfits"));
+const Accessories = lazy(() => import("./pages/Accessories"));
+const Videos = lazy(() => import("./pages/Videos"));
+const History = lazy(() => import("./pages/History"));
+const UserManagement = lazy(() => import("./pages/UserManagement"));
 import NotFound from "./pages/NotFound";
 import ResetPassword from "./pages/ResetPassword";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: 1, staleTime: 15_000 } },
+});
+
+function LoadingTab() {
+  return (
+    <div className="min-h-[30vh] flex flex-col items-center justify-center gap-3" role="status">
+      <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary/20 border-t-primary" />
+      <p className="text-sm text-muted-foreground">Carregando página...</p>
+    </div>
+  );
+}
+
 
 function ProtectedRoutes() {
   const { user, loading, isAdmin } = useAuth();
@@ -35,8 +48,9 @@ function ProtectedRoutes() {
   if (!user) return <Navigate to="/login" replace />;
 
   return (
-    <Routes>
-      <Route element={<AppLayout />}>
+    <Suspense fallback={<LoadingTab />}>
+      <Routes>
+        <Route element={<AppLayout />}>
         <Route index element={<Dashboard />} />
         <Route path="membros" element={isAdmin ? <Members /> : <Navigate to="/" replace />} />
         <Route path="roupas" element={<Outfits />} />
@@ -46,7 +60,8 @@ function ProtectedRoutes() {
         <Route path="usuarios" element={<UserManagement />} />
       </Route>
       <Route path="*" element={<NotFound />} />
-    </Routes>
+      </Routes>
+    </Suspense>
   );
 }
 
