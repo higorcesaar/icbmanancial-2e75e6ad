@@ -56,6 +56,25 @@ export default function Dashboard() {
     },
   });
 
+  // An empty month is not a database error. Offer the most recent month
+  // with an existing schedule so historic entries remain easy to discover.
+  const { data: latestScheduleDate } = useQuery({
+    queryKey: ['latest-schedule-before', year, month],
+    enabled: !schedulesLoading && !schedulesError && schedules.length === 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('schedules')
+        .select('date')
+        .lte('date', format(end, 'yyyy-MM-dd'))
+        .order('date', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data?.date ?? null;
+    },
+    retry: false,
+  });
+
   const { data: members = [] } = useQuery({
     queryKey: ['members-active'],
     queryFn: async () => {
@@ -129,6 +148,35 @@ export default function Dashboard() {
   return (
     <div className="space-y-8">
       <DataQueryNotice loading={schedulesLoading} error={schedulesError} label="escalas do mês" retry={() => void refetchSchedules()} />
+      {!schedulesLoading && !schedulesError && schedules.length === 0 && (
+        <Card className="border-primary/20 bg-primary/5">
+          <CardContent className="p-4 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+            <div>
+              <p className="font-semibold text-foreground">
+                Não há escalas cadastradas em {MONTHS[month]} de {year}.
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Isso não significa que as escalas anteriores foram apagadas.
+                Use as setas do calendário para consultar outros meses.
+              </p>
+            </div>
+            {latestScheduleDate && (
+              <Button
+                type="button"
+                variant="outline"
+                className="shrink-0"
+                onClick={() => {
+                  const date = new Date(`${latestScheduleDate}T12:00:00`);
+                  setSelectedDate(null);
+                  setCurrentDate(date);
+                }}
+              >
+                Ver {format(new Date(`${latestScheduleDate}T12:00:00`), "MMMM 'de' yyyy", { locale: ptBR })}
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+      )}
       {/* Stats bar */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
